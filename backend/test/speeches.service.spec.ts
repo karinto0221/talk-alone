@@ -9,9 +9,27 @@ describe('SpeechesService', () => {
       findRecent: jest.fn().mockResolvedValue([]),
     };
     const service = new SpeechesService(repository as never, {} as never);
-    const result = await service.getAnalytics();
+    const result = await service.getAnalytics('standard');
     expect(result.totalSessions).toBe(2);
     expect(result.averageSeconds).toBe(95.5);
     expect(result.categoryStats[0].count).toBe(2);
+  });
+
+  it('omits category details from the all-mode summary', async () => {
+    const repository = {
+      getOverview: jest.fn().mockResolvedValue({ totalSessions: '3', averageSeconds: '80', bestSeconds: '140' }),
+      getCategoryStats: jest.fn(),
+      getMonthlyStats: jest.fn().mockResolvedValue([]),
+      findRecent: jest.fn(),
+    };
+    const service = new SpeechesService(repository as never, {} as never);
+
+    const result = await service.getAnalytics('all');
+
+    expect(result.mode).toBe('all');
+    expect(result.categoryStats).toEqual([]);
+    expect(result.recentSpeeches).toEqual([]);
+    expect(repository.getCategoryStats).not.toHaveBeenCalled();
+    expect(repository.findRecent).not.toHaveBeenCalled();
   });
 });

@@ -1,15 +1,19 @@
 export type Category = { id: string; name: string; description: string; color: string; displayOrder: number };
-export type Topic = { text: string; categoryId: string; categoryName: string };
+export type TopicMode = 'standard' | 'word';
+export type Topic = { text: string; categoryId: string; categoryName: string; mode: TopicMode };
 export type Speech = {
   id: string;
   topic: string;
   categoryId: string;
   categoryName: string;
+  mode: TopicMode;
   durationSeconds: number;
   helpCount: number;
   completedAt: string;
 };
+export type AnalyticsMode = 'all' | TopicMode;
 export type Analytics = {
+  mode: AnalyticsMode;
   totalSessions: number;
   averageSeconds: number;
   bestSeconds: number;
@@ -17,4 +21,4 @@ export type Analytics = {
   monthlyStats: Array<{ month: string; averageSeconds: number; count: number }>;
   recentSpeeches: Speech[];
 };
-export type CreateSpeechRequest = Pick<Speech, 'topic' | 'categoryId' | 'durationSeconds' | 'helpCount'>;
+export type CreateSpeechRequest = Pick<Speech, 'topic' | 'categoryId' | 'mode' | 'durationSeconds' | 'helpCount'>;

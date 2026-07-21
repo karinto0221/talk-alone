@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CreateSpeechDto } from './dto/create-speech.dto';
+import { GetAnalyticsDto } from './dto/get-analytics.dto';
 import { SpeechesService } from './speeches.service';
 
 @Controller('speeches')
@@ -12,7 +13,7 @@ export class SpeechesController {
   }
 
   @Get('analytics')
-  getAnalytics() {
-    return this.speechesService.getAnalytics();
+  getAnalytics(@Query() query: GetAnalyticsDto) {
+    return this.speechesService.getAnalytics(query.mode);
   }
 }

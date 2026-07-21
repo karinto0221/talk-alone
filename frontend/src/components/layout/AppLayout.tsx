@@ -6,7 +6,7 @@ export function AppLayout() {
     <div className="app-frame">
       <header className="app-header">
         <NavLink className="logo" to="/" aria-label="talk-alone ホーム">
-          <span className="logo-icon"><Mic2 size={18} /></span><span>talk-alone</span>
+          <span className="logo-icon"><Mic2 size={18} /></span><span className="logo-wordmark">talk-alone</span>
         </NavLink>
         <nav className="main-nav" aria-label="メインナビゲーション">
           <NavLink to="/" end><Mic2 size={16} /> スピーチ</NavLink>

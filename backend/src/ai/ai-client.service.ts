@@ -11,9 +11,17 @@ export class AiClientService {
 
   generateTopic(category: CategoryEntity) {
     return this.request(
-      `日本語の3分間スピーチ用のお題を1つ作成してください。ジャンルは「${category.name}」、説明は「${category.description}」です。単語だけのお題、または考えを深める問いのどちらでも構いません。話しやすく、センシティブすぎない内容にしてください。`,
+      `日本語の3分間スピーチ用のお題を1つ作成してください。ジャンルは「${category.name}」、説明は「${category.description}」です。身近な題材または考えを深める問いにし、話しやすく、センシティブすぎない内容にしてください。`,
       'topic',
     );
+  }
+
+  async generateWord(category: CategoryEntity): Promise<string | null> {
+    const topic = await this.request(
+      `日本語の3分間スピーチ用に、連想を広げられる名詞または概念をランダムに1単語だけ作成してください。ジャンルは「${category.name}」、説明は「${category.description}」です。説明、助詞、空白、句読点、括弧、疑問符は含めないでください。賛否を考えるジャンルの場合は、校則、制服、SNSのように意見を展開できる名詞を選んでください。幅広い語彙から選び、例をそのまま優先しないでください。`,
+      'topic',
+    );
+    return topic && this.isSingleWord(topic) ? topic : null;
   }
 
   generateHint(topic: string, category: CategoryEntity) {
@@ -25,6 +33,11 @@ export class AiClientService {
 
   private async request(prompt: string, key: keyof AiResult): Promise<string | null> {
     if (!this.apiKey) return null;
+    const result = await this.requestJson(prompt, `${key}キーだけ`);
+    return result[key]?.trim() || null;
+  }
+
+  private async requestJson(prompt: string, responseKeys: string): Promise<AiResult> {
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
@@ -34,19 +47,23 @@ export class AiClientService {
           temperature: 1,
           response_format: { type: 'json_object' },
           messages: [
-            { role: 'system', content: `日本語のスピーチコーチとして、${key}キーだけを持つJSONを返してください。` },
+            { role: 'system', content: `日本語のスピーチコーチとして、${responseKeys}を持つJSONだけを返してください。` },
             { role: 'user', content: prompt },
           ],
         }),
         signal: AbortSignal.timeout(9000),
       });
-      if (!response.ok) return null;
+      if (!response.ok) return {};
       const body = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const content = body.choices?.[0]?.message?.content;
-      if (!content) return null;
-      return (JSON.parse(content) as AiResult)[key]?.trim() || null;
+      if (!content) return {};
+      return JSON.parse(content) as AiResult;
     } catch {
-      return null;
+      return {};
     }
+  }
+
+  private isSingleWord(value: string) {
+    return value.length <= 24 && !/[\s、。,.!?！？「」『』（）()]/u.test(value);
   }
 }

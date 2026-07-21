@@ -14,10 +14,15 @@
 
 ## GET /api/topics/random
 
-- 用途: ランダムなお題取得
-- AIキー設定時はランダム選択したジャンルを基にAI生成する。失敗・未設定時は内蔵データを返す。
-- 200: `{ "text": string, "categoryId": string, "categoryName": string }`
-- 404: ジャンルマスタが空の場合。
+- 用途: 指定条件に基づくランダムなお題取得
+- Query: `categoryId?: string(1..32)`。両モードで使用し、省略した場合はDBのジャンルマスタからランダムに選択する。
+- Query: `mode?: "standard" | "word"`。省略時は `standard`。`word` は説明や句読点を含まない1単語だけを返す。
+- スタンダードは選択したジャンルを基に文章または問いをAI生成する。ワードは同じジャンルを基に1単語をAI生成する。
+- AI失敗・未設定時は、選択されたジャンルとモードに対応する内蔵データから返す。
+- AIがワードモードの形式に違反した場合も内蔵データへフォールバックする。
+- 200: `{ "text": string, "categoryId": string, "categoryName": string, "mode": "standard" | "word" }`
+- 400: ジャンルIDの形式またはモードが不正な場合。
+- 404: 指定ジャンルがDBに存在しない、または利用できるジャンルがない場合。
 
 ## POST /api/topics/help
 
@@ -31,8 +36,8 @@
 ## POST /api/speeches
 
 - 用途: 完了したスピーチの保存
-- Request: `{ "topic": string(1..200), "categoryId": CategoryId, "durationSeconds": integer(1..180), "helpCount": integer(0..50) }`
-- 201: `{ id, topic, categoryId, categoryName, durationSeconds, helpCount, completedAt }`
+- Request: `{ "topic": string(1..200), "categoryId": CategoryId, "mode": "standard" | "word", "durationSeconds": integer(1..180), "helpCount": integer(0..50) }`
+- 201: `{ id, topic, categoryId, categoryName, mode, durationSeconds, helpCount, completedAt }`
 - 400: 入力検証エラー。
 - 404: ジャンルが存在しない場合。
 - 副作用: speechesへ1件追加。
@@ -40,7 +45,11 @@
 ## GET /api/speeches/analytics
 
 - 用途: 分析データ取得
-- 200: `{ totalSessions, averageSeconds, bestSeconds, categoryStats, monthlyStats, recentSpeeches }`
+- Query: `mode?: "all" | "standard" | "word"`。省略時は `all`。
+- 200: `{ mode, totalSessions, averageSeconds, bestSeconds, categoryStats, monthlyStats, recentSpeeches }`
+- `all`: 全モードの概要と月別集計。`categoryStats` と `recentSpeeches` は空配列。
+- `standard`: スタンダードだけを対象に集計。
+- `word`: ワードだけを対象に、選択またはランダムで決定したジャンル別に集計。
 - `categoryStats`: ジャンル名、色、平均秒数、件数。平均秒数降順。
 - `monthlyStats`: 直近6か月。古い月から新しい月の順。
 - `recentSpeeches`: 新しい順の最大20件。

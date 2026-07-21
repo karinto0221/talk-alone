@@ -18,7 +18,7 @@ export function ActiveSession({ phase, topic, elapsed, remaining, progress, hint
       <div className="session-timer"><span>REMAINING</span><strong>{formatTime(remaining)}</strong></div>
       <div className="session-progress"><span style={{ width: `${progress}%` }} /></div>
       <article className="topic-panel">
-        <div className="topic-meta"><span>TOPIC</span><b>{topic.categoryName}</b></div>
+        <div className="topic-meta"><span>{topic.mode === 'word' ? 'WORD' : 'TOPIC'}</span><b>{topic.categoryName}</b></div>
         <h1>{topic.text}</h1>
       </article>
       {hint && <aside className="hint-panel"><Lightbulb size={18} /><div><span>ヒント</span><p>{hint}</p></div></aside>}

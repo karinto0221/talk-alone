@@ -1,15 +1,18 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsString, Length, Max, Min } from 'class-validator';
-
-const CATEGORY_IDS = ['daily', 'favorites', 'memories', 'imagination', 'values', 'society'] as const;
+import { SPEECH_MODES, type SpeechMode } from '../speech.constants';
 
 export class CreateSpeechDto {
   @IsString()
   @Length(1, 200)
   topic: string;
 
-  @IsIn(CATEGORY_IDS)
+  @IsString()
+  @Length(1, 32)
   categoryId: string;
+
+  @IsIn(SPEECH_MODES)
+  mode: SpeechMode;
 
   @Type(() => Number)
   @IsInt()

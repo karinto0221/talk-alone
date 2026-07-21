@@ -1,11 +1,14 @@
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CategoryEntity } from '../categories/category.entity';
+import type { SpeechMode } from './speech.constants';
 
 @Entity({ name: 'speeches' })
 @Check('CHK_speeches_duration', '"duration_seconds" BETWEEN 1 AND 180')
 @Check('CHK_speeches_help_count', '"help_count" >= 0')
+@Check('CHK_speeches_mode', `"mode" IN ('standard', 'word')`)
 @Index('IDX_speeches_completed_at', ['completedAt'])
 @Index('IDX_speeches_category_completed', ['categoryId', 'completedAt'])
+@Index('IDX_speeches_mode_completed', ['mode', 'completedAt'])
 export class SpeechEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -19,6 +22,9 @@ export class SpeechEntity {
   @ManyToOne(() => CategoryEntity, (category) => category.speeches, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'category_id' })
   category: CategoryEntity;
+
+  @Column({ type: 'varchar', length: 16, default: 'standard' })
+  mode: SpeechMode;
 
   @Column({ name: 'duration_seconds', type: 'smallint' })
   durationSeconds: number;

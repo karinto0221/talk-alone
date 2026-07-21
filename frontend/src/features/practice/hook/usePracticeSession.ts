@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSpeechesApi } from '../../../api/hook/useSpeechesApi';
 import { useTopicsApi } from '../../../api/hook/useTopicsApi';
-import type { PracticeState } from '../type';
+import type { PracticeOptions, PracticeState } from '../type';
 import { SESSION_SECONDS } from '../util/time';
 
 const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0, hint: '', helpCount: 0 };
@@ -12,10 +12,10 @@ export function usePracticeSession() {
   const topicsApi = useTopicsApi();
   const speechesApi = useSpeechesApi();
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (options: PracticeOptions) => {
     setState({ ...initialState, phase: 'preparing' });
     try {
-      const topic = await topicsApi.getRandomTopic();
+      const topic = await topicsApi.getRandomTopic(options);
       setState({ ...initialState, phase: 'speaking', topic });
     } catch { setState(initialState); }
   }, [topicsApi.getRandomTopic]);
@@ -27,6 +27,7 @@ export function usePracticeSession() {
       await speechesApi.createSpeech({
         topic: state.topic.text,
         categoryId: state.topic.categoryId,
+        mode: state.topic.mode,
         durationSeconds: Math.max(1, state.elapsedSeconds),
         helpCount: state.helpCount,
       });
