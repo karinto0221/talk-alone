@@ -12,6 +12,10 @@ export class SpeechesRepository {
     return this.repository.save(this.repository.create(input));
   }
 
+  findById(id: string) {
+    return this.repository.findOne({ where: { id }, relations: { category: true } });
+  }
+
   findRecent(limit = 20, mode?: SpeechMode) {
     const query = this.repository.createQueryBuilder('speech')
       .innerJoinAndSelect('speech.category', 'category')

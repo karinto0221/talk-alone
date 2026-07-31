@@ -22,3 +22,10 @@ export type Analytics = {
   recentSpeeches: Speech[];
 };
 export type CreateSpeechRequest = Pick<Speech, 'topic' | 'categoryId' | 'mode' | 'durationSeconds' | 'helpCount'>;
+export type SpeechAnalysis = {
+  transcript: string;
+  summary: string;
+  strengths: string[];
+  improvements: string[];
+  nextChallenge: string;
+};

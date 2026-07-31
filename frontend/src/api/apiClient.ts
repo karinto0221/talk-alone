@@ -10,10 +10,12 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
 export async function apiClient<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response;
   try {
+    const headers = new Headers(options?.headers);
+    if (!(options?.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     response = await fetch(`${baseUrl}${path}`, {
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
       ...options,
+      credentials: 'same-origin',
+      headers,
     });
   } catch {
     throw new ApiError(0, 'サーバーに接続できません。');

@@ -8,7 +8,7 @@ describe('SpeechesService', () => {
       getMonthlyStats: jest.fn().mockResolvedValue([{ month: '2026-07', averageSeconds: '95.5', count: '2' }]),
       findRecent: jest.fn().mockResolvedValue([]),
     };
-    const service = new SpeechesService(repository as never, {} as never);
+    const service = new SpeechesService(repository as never, {} as never, {} as never);
     const result = await service.getAnalytics('standard');
     expect(result.totalSessions).toBe(2);
     expect(result.averageSeconds).toBe(95.5);
@@ -22,7 +22,7 @@ describe('SpeechesService', () => {
       getMonthlyStats: jest.fn().mockResolvedValue([]),
       findRecent: jest.fn(),
     };
-    const service = new SpeechesService(repository as never, {} as never);
+    const service = new SpeechesService(repository as never, {} as never, {} as never);
 
     const result = await service.getAnalytics('all');
 
@@ -31,5 +31,37 @@ describe('SpeechesService', () => {
     expect(result.recentSpeeches).toEqual([]);
     expect(repository.getCategoryStats).not.toHaveBeenCalled();
     expect(repository.findRecent).not.toHaveBeenCalled();
+  });
+
+  it('transcribes a temporary recording and returns AI feedback without persisting audio', async () => {
+    const repository = {
+      findById: jest.fn().mockResolvedValue({
+        id: '1c90055c-98db-4bf2-93c1-207257bad84b',
+        topic: '最近うれしかったこと',
+        category: { name: '日常' },
+        durationSeconds: 90,
+      }),
+    };
+    const aiClient = {
+      transcribeAudio: jest.fn().mockResolvedValue('今日はうれしかった出来事について話します。'),
+      analyzeSpeech: jest.fn().mockResolvedValue({
+        summary: '出来事を順序立てて説明しています。',
+        strengths: ['具体例がある'],
+        improvements: ['結論を明確にする'],
+        nextChallenge: '最初に結論を述べる',
+      }),
+    };
+    const service = new SpeechesService(repository as never, {} as never, aiClient as never);
+
+    const result = await service.analyze('1c90055c-98db-4bf2-93c1-207257bad84b', {
+      buffer: Buffer.from('audio'),
+      mimetype: 'audio/webm',
+      originalname: 'speech.webm',
+      size: 5,
+    });
+
+    expect(result.transcript).toContain('うれしかった');
+    expect(result.strengths).toEqual(['具体例がある']);
+    expect(aiClient.transcribeAudio).toHaveBeenCalledTimes(1);
   });
 });

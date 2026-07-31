@@ -42,6 +42,19 @@
 - 404: ジャンルが存在しない場合。
 - 副作用: speechesへ1件追加。
 
+## POST /api/speeches/:id/analysis
+
+- 用途: 保存済みスピーチに対応する一時録音を文字起こしし、AIフィードバックを取得する。
+- Path: `id` はスピーチ記録のUUID。
+- Content-Type: `multipart/form-data`。
+- Form: `audio`。最大10MB。対応形式はwebm、ogg、mp4/m4a、mp3/mpeg、wav。
+- 201: `{ transcript, summary, strengths: string[], improvements: string[], nextChallenge }`
+- 分析対象は文字起こしから判断できる話の内容と構成。声質、音量、発音などは評価しない。
+- 400: ファイルがない、空、上限超過、または非対応形式の場合。
+- 404: スピーチ記録が存在しない場合。
+- 503: AI未設定、文字起こし失敗、またはフィードバック生成失敗の場合。
+- 音声ファイルと分析結果はDB・サーバーディスクへ保存しない。
+
 ## GET /api/speeches/analytics
 
 - 用途: 分析データ取得
@@ -56,4 +69,4 @@
 
 ## 共通エラー
 
-NestJS標準形式 `{ statusCode, message, error }` を返す。内部例外、DB接続情報、AI APIキーは返さない。
+NestJS標準形式 `{ statusCode, message, error }` を返す。内部例外、DB接続情報、AI APIキーは返さない。アップロード上限超過時はmultipart処理の400系エラーを返す。

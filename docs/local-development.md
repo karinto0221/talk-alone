@@ -24,7 +24,8 @@ npm run dev
 - ルートの `.env` はDocker ComposeとNestJSローカル起動で共通利用する。ComposeはDB初期化とbackendコンテナの両方へ同じDB名・ユーザー・パスワードを渡す。
 - frontendの `VITE_API_BASE_URL` はViteのビルド時に埋め込まれる。変更後は再ビルドが必要。
 - backendのDB・CORS・AI設定はNestJS起動時に読み込まれる。変更後はプロセス再起動が必要。
-- `AI_API_KEY` は任意。未設定でも内蔵データで動作する。
+- `AI_API_KEY` は任意。未設定でも内蔵データでお題・ヒントは動作するが、リザルト画面のAI分析は利用できない。
+- `AI_TRANSCRIPTION_MODEL` は音声文字起こし用モデル。未設定時は `gpt-4o-mini-transcribe` を使用する。
 
 ## DB操作
 
