@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AiClientService } from '../ai/ai-client.service';
 import { CategoriesService } from '../categories/categories.service';
-import { HINTS, TOPICS, WORD_TOPICS } from './topic.data';
+import { getHintCandidates } from './data/hint.data';
+import { TOPICS } from './data/standard-topic.data';
+import { WORD_TOPICS } from './data/word-topic.data';
 import type { TopicMode } from './dto/get-random-topic.dto';
 
 const sample = <T>(items: T[]) => items[Math.floor(Math.random() * items.length)];
@@ -32,6 +34,6 @@ export class TopicsService {
   async createHint(topic: string, categoryId: string) {
     const category = await this.categoriesService.findById(categoryId);
     const generated = await this.aiClient.generateHint(topic, category);
-    return { question: generated ?? sample(HINTS[category.id]) };
+    return { question: generated ?? sample(getHintCandidates(category.id, topic)) };
   }
 }
