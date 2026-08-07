@@ -45,6 +45,8 @@ describe('SpeechesService', () => {
     const aiClient = {
       transcribeAudio: jest.fn().mockResolvedValue('今日はうれしかった出来事について話します。'),
       analyzeSpeech: jest.fn().mockResolvedValue({
+        score: 78,
+        scoreBreakdown: { relevance: 18, structure: 16, specificity: 14, coherence: 15, expression: 15 },
         summary: '出来事を順序立てて説明しています。',
         strengths: ['具体例がある'],
         improvements: ['結論を明確にする'],
@@ -61,6 +63,8 @@ describe('SpeechesService', () => {
     });
 
     expect(result.transcript).toContain('うれしかった');
+    expect(result.score).toBe(78);
+    expect(result.scoreBreakdown.expression).toBe(15);
     expect(result.strengths).toEqual(['具体例がある']);
     expect(aiClient.transcribeAudio).toHaveBeenCalledTimes(1);
   });

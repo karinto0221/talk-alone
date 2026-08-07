@@ -5,8 +5,9 @@ import { HealthModule } from './health/health.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TopicsModule } from './topics/topics.module';
 import { SpeechesModule } from './speeches/speeches.module';
+import { StreamerModule } from './streamer/streamer.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: ['../.env', '.env'] }), DatabaseModule, HealthModule, CategoriesModule, TopicsModule, SpeechesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: ['../.env', '.env'] }), DatabaseModule, HealthModule, CategoriesModule, TopicsModule, SpeechesModule, StreamerModule],
 })
 export class AppModule {}

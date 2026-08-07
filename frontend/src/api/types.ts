@@ -24,8 +24,17 @@ export type Analytics = {
 export type CreateSpeechRequest = Pick<Speech, 'topic' | 'categoryId' | 'mode' | 'durationSeconds' | 'helpCount'>;
 export type SpeechAnalysis = {
   transcript: string;
+  score: number;
+  scoreBreakdown: {
+    relevance: number;
+    structure: number;
+    specificity: number;
+    coherence: number;
+    expression: number;
+  };
   summary: string;
   strengths: string[];
   improvements: string[];
   nextChallenge: string;
 };
+export type StreamerComment = { text: string };

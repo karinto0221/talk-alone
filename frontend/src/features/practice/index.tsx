@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Category, TopicMode } from '../../api';
+import type { Category } from '../../api';
 import { useCategoriesApi } from '../../api/hook/useCategoriesApi';
 import { ActiveSession } from './component/ActiveSession';
 import { SessionReady } from './component/SessionReady';
@@ -8,6 +8,10 @@ import { usePracticeSession } from './hook/usePracticeSession';
 import { useTemporaryResult } from '../result/context/TemporaryResultContext';
 import type { Speech } from '../../api';
 import type { RecordingResult } from './hook/useAudioRecorder';
+import type { PracticeMode } from './type';
+import { StreamerSession } from '../streamer';
+
+const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
 
 export function PracticeFeature() {
   const navigate = useNavigate();
@@ -20,18 +24,31 @@ export function PracticeFeature() {
   const categoriesApi = useCategoriesApi();
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState('');
-  const [mode, setMode] = useState<TopicMode>('standard');
+  const [mode, setMode] = useState<PracticeMode>('standard');
+  const [durationMinutes, setDurationMinutes] = useState(10);
+  const [streamerActive, setStreamerActive] = useState(false);
   const { state } = session;
 
   useEffect(() => {
     void categoriesApi.listCategories().then(setCategories).catch(() => undefined);
   }, [categoriesApi.listCategories]);
 
-  const start = () => session.start({ categoryId: categoryId || undefined, mode });
+  const start = () => {
+    if (mode === 'streamer') {
+      setDurationMinutes((current) => clampDuration(current));
+      setStreamerActive(true);
+      return;
+    }
+    void session.start({ categoryId: categoryId || undefined, mode });
+  };
+
+  if (streamerActive) {
+    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} onExit={() => setStreamerActive(false)} /></main>;
+  }
 
   return (
     <main className="page practice-page">
-      {(session.error || categoriesApi.error) && <div className="error-banner" role="alert">{session.error || categoriesApi.error}</div>}
+      {(session.error || (mode !== 'streamer' && categoriesApi.error)) && <div className="error-banner" role="alert">{session.error || categoriesApi.error}</div>}
       {session.recordingNotice && <div className="notice-banner" role="status">{session.recordingNotice}</div>}
       {state.phase === 'idle' || state.phase === 'preparing' ? (
         <SessionReady
@@ -40,9 +57,11 @@ export function PracticeFeature() {
           categories={categories}
           categoryId={categoryId}
           mode={mode}
+          durationMinutes={durationMinutes}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
-          onStart={() => void start()}
+          onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
+          onStart={start}
         />
       ) : state.topic ? (
         <ActiveSession

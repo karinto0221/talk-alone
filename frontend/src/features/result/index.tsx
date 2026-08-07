@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatTime } from '../practice/util/time';
 import { useTemporaryResult } from './context/TemporaryResultContext';
+import { ScoreRadar } from './component/ScoreRadar';
 
 function downloadExtension(mimeType: string) {
   if (mimeType.includes('mp4')) return 'm4a';
@@ -101,6 +102,7 @@ export function ResultFeature() {
       {analysis && (
         <section className="analysis-result" aria-live="polite">
           <div className="analysis-title"><span>AI FEEDBACK</span><h2>分析結果</h2></div>
+          <ScoreRadar score={analysis.score} breakdown={analysis.scoreBreakdown} />
           <div className="analysis-summary"><span>要約</span><p>{analysis.summary}</p></div>
           <div className="feedback-grid">
             <article><div><Check size={16} /><h3>良かった点</h3></div><ul>{analysis.strengths.map((item) => <li key={item}>{item}</li>)}</ul></article>

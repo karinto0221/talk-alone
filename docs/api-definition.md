@@ -33,6 +33,16 @@
 - 404: ジャンルが存在しない場合。
 - 副作用: なし。
 
+## POST /api/streamer/comments
+
+- 用途: 配信者モードで表示するフリー雑談コメントを1件取得する。
+- Request: `{ "recentComments"?: string[](最大10件、各1..120文字) }`
+- AIは呼び出しごとにコメント種別と発想のきっかけをランダムに変え、質問、二択、日常報告、独り言、軽い相談、奇妙な仮定、短い主張などから60文字以内のコメントを生成する。質問文であることは必須としない。
+- `recentComments` と同じ内容は返さない。AI未設定、生成失敗、重複、形式不正時は内蔵コメントから未使用の1件を返す。
+- 201: `{ "text": string }`
+- 400: 入力検証エラー。
+- 副作用: なし。コメントはDBへ保存しない。
+
 ## POST /api/speeches
 
 - 用途: 完了したスピーチの保存
@@ -48,8 +58,10 @@
 - Path: `id` はスピーチ記録のUUID。
 - Content-Type: `multipart/form-data`。
 - Form: `audio`。最大10MB。対応形式はwebm、ogg、mp4/m4a、mp3/mpeg、wav。
-- 201: `{ transcript, summary, strengths: string[], improvements: string[], nextChallenge }`
+- 201: `{ transcript, score: integer(0..100), scoreBreakdown: { relevance, structure, specificity, coherence, expression }, summary, strengths: string[], improvements: string[], nextChallenge }`
 - 分析対象は文字起こしから判断できる話の内容と構成。声質、音量、発音などは評価しない。
+- `scoreBreakdown` の5項目は各0〜20の整数。関連性、構成、具体性、一貫性、表現力（言葉選び・伝わりやすさ）を表す。
+- `score` は5項目をバックエンドで合計した100点満点の値。
 - 400: ファイルがない、空、上限超過、または非対応形式の場合。
 - 404: スピーチ記録が存在しない場合。
 - 503: AI未設定、文字起こし失敗、またはフィードバック生成失敗の場合。
