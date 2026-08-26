@@ -8,8 +8,9 @@ import { usePracticeSession } from './hook/usePracticeSession';
 import { useTemporaryResult } from '../result/context/TemporaryResultContext';
 import type { Speech } from '../../api';
 import type { RecordingResult } from './hook/useAudioRecorder';
-import type { PracticeMode } from './type';
+import type { PracticeMode, ReflexTrainingType } from './type';
 import { StreamerSession } from '../streamer';
+import { ReflexSession } from '../reflex';
 
 const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
 
@@ -25,8 +26,10 @@ export function PracticeFeature() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('standard');
+  const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
   const [durationMinutes, setDurationMinutes] = useState(10);
   const [streamerActive, setStreamerActive] = useState(false);
+  const [reflexActive, setReflexActive] = useState(false);
   const { state } = session;
 
   useEffect(() => {
@@ -39,6 +42,10 @@ export function PracticeFeature() {
       setStreamerActive(true);
       return;
     }
+    if (mode === 'reflex') {
+      setReflexActive(true);
+      return;
+    }
     void session.start({ categoryId: categoryId || undefined, mode });
   };
 
@@ -46,9 +53,15 @@ export function PracticeFeature() {
     return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} onExit={() => setStreamerActive(false)} /></main>;
   }
 
+  if (reflexActive) {
+    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} onExit={() => setReflexActive(false)} /></main>;
+  }
+
+  const usesCategory = mode === 'standard' || mode === 'word';
+
   return (
     <main className="page practice-page">
-      {(session.error || (mode !== 'streamer' && categoriesApi.error)) && <div className="error-banner" role="alert">{session.error || categoriesApi.error}</div>}
+      {(session.error || (usesCategory && categoriesApi.error)) && <div className="error-banner" role="alert">{session.error || categoriesApi.error}</div>}
       {session.recordingNotice && <div className="notice-banner" role="status">{session.recordingNotice}</div>}
       {state.phase === 'idle' || state.phase === 'preparing' ? (
         <SessionReady
@@ -57,9 +70,11 @@ export function PracticeFeature() {
           categories={categories}
           categoryId={categoryId}
           mode={mode}
+          reflexTrainingType={reflexTrainingType}
           durationMinutes={durationMinutes}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
+          onReflexTrainingTypeChange={setReflexTrainingType}
           onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
           onStart={start}
         />
