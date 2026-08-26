@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStreamerApi } from '../../../api/hook/useStreamerApi';
 import { STREAMER_USERNAMES } from '../data/streamer-user.data';
 
@@ -17,33 +17,46 @@ function randomUsername(previousUsername?: string) {
   return candidates[Math.floor(Math.random() * candidates.length)] ?? STREAMER_USERNAMES[0];
 }
 
-export function useStreamerSession(durationMinutes: number) {
+export function useStreamerSession(durationMinutes: number, enabled = true) {
   const totalSeconds = durationMinutes * 60;
   const [phase, setPhase] = useState<StreamerPhase>('running');
   const [remainingSeconds, setRemainingSeconds] = useState(totalSeconds);
   const [comments, setComments] = useState<StreamerCommentItem[]>([]);
   const [retryCount, setRetryCount] = useState(0);
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef<number | null>(null);
+  const phaseRef = useRef<StreamerPhase>('running');
   const streamerApi = useStreamerApi();
 
+  const finish = useCallback(() => {
+    phaseRef.current = 'complete';
+    setPhase('complete');
+  }, []);
+
   useEffect(() => {
+    if (!enabled) return;
+    startedAt.current = Date.now();
     const deadline = startedAt.current + totalSeconds * 1000;
     let timer = 0;
     const updateTimer = () => {
+      if (phaseRef.current !== 'running') {
+        window.clearInterval(timer);
+        return;
+      }
       const nextRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setRemainingSeconds(nextRemaining);
       if (nextRemaining === 0) {
         window.clearInterval(timer);
+        phaseRef.current = 'complete';
         setPhase('complete');
       }
     };
     timer = window.setInterval(updateTimer, 250);
     updateTimer();
     return () => window.clearInterval(timer);
-  }, [totalSeconds]);
+  }, [enabled, totalSeconds]);
 
   useEffect(() => {
-    if (phase !== 'running') return;
+    if (!enabled || phase !== 'running') return;
     let cancelled = false;
     const delay = comments.length === 0 ? (retryCount === 0 ? 0 : 10_000) : randomCommentDelay();
     const timer = window.setTimeout(async () => {
@@ -56,7 +69,7 @@ export function useStreamerSession(durationMinutes: number) {
             id: `${Date.now()}-${Math.random()}`,
             username: randomUsername(previousUsername),
             text: result.text,
-            receivedAtSeconds: Math.floor((Date.now() - startedAt.current) / 1000),
+            receivedAtSeconds: Math.floor((Date.now() - (startedAt.current ?? Date.now())) / 1000),
           }];
         });
       } catch {
@@ -67,15 +80,19 @@ export function useStreamerSession(durationMinutes: number) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [comments, phase, retryCount, streamerApi.createComment]);
+  }, [comments, enabled, phase, retryCount, streamerApi.createComment]);
 
   return useMemo(() => ({
     phase,
     comments,
     remainingSeconds,
     elapsedSeconds: totalSeconds - remainingSeconds,
+    totalSeconds,
     progress: Math.min(100, ((totalSeconds - remainingSeconds) / totalSeconds) * 100),
+    completedNaturally: remainingSeconds === 0,
+    latestCommentId: comments[comments.length - 1]?.id,
     commentLoading: streamerApi.loading,
     error: streamerApi.error,
-  }), [comments, phase, remainingSeconds, streamerApi.error, streamerApi.loading, totalSeconds]);
+    finish,
+  }), [comments, finish, phase, remainingSeconds, streamerApi.error, streamerApi.loading, totalSeconds]);
 }
