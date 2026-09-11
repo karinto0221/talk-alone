@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type PropsWithChildren } from 'react';
-import type { Speech } from '../../../api';
+import type { PracticeResult } from '../../../domain/practice';
 import type { RecordingResult } from '../../practice/hook/useAudioRecorder';
 
-export type TemporaryResult = { speech: Speech; recording: RecordingResult | null };
+export type TemporaryResult = { practiceResult: PracticeResult; recording: RecordingResult | null };
 
 type ContextValue = {
   result: TemporaryResult | null;

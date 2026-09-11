@@ -1,14 +1,15 @@
 import { ArrowLeft, CheckCircle2, MessageCircle, Radio, Square, UserRound } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Button } from '../../../components/ui/Button';
-import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { formatTime } from '../../practice/util/time';
+import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../config/comment-frequency';
 import { useStreamerSession } from '../hook/useStreamerSession';
 
-type Props = { durationMinutes: number; onExit: () => void };
+type Props = { durationMinutes: number; commentFrequency: StreamerCommentFrequency; onExit: () => void };
 
-export function StreamerSession({ durationMinutes, onExit }: Props) {
-  const session = useStreamerSession(durationMinutes);
+export function StreamerSession({ durationMinutes, commentFrequency, onExit }: Props) {
+  const session = useStreamerSession(durationMinutes, commentFrequency);
+  const frequency = STREAMER_COMMENT_FREQUENCIES[commentFrequency];
   const feedEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,7 +33,6 @@ export function StreamerSession({ durationMinutes, onExit }: Props) {
 
   return (
     <section className="streamer-workspace">
-      {session.error && <div className="error-banner" role="alert">{session.error}</div>}
       <div className="streamer-session-head">
         <div><span className="streamer-live-dot" /><b>LIVE PRACTICE</b></div>
         <span>{session.comments.length} COMMENTS</span>
@@ -51,9 +51,6 @@ export function StreamerSession({ durationMinutes, onExit }: Props) {
                 </div>
               </div>
             ))}
-            {(session.comments.length === 0 || session.commentLoading) && (
-              <div className="comment-waiting"><LoadingSpinner /><span>{session.comments.length === 0 ? '最初のコメントを待っています' : '新しいコメントが入力されています'}</span></div>
-            )}
             <div ref={feedEnd} />
           </div>
         </article>
@@ -64,7 +61,7 @@ export function StreamerSession({ durationMinutes, onExit }: Props) {
           <div className="streamer-progress"><span style={{ width: `${session.progress}%` }} /></div>
           <dl>
             <div><dt>SESSION</dt><dd>{durationMinutes} MIN</dd></div>
-            <div><dt>COMMENTS</dt><dd>RANDOM</dd></div>
+            <div><dt>FREQUENCY</dt><dd>{frequency.label}</dd></div>
             <div><dt>RECORDING</dt><dd>OFF</dd></div>
           </dl>
           <Button variant="ghost" onClick={onExit} icon={<Square size={14} fill="currentColor" />}>終了</Button>

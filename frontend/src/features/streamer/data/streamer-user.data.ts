@@ -1,4 +1,4 @@
-const TARGET_USERNAME_COUNT = 1_000;
+const TARGET_USERNAME_COUNT = 5_000;
 
 const CURATED_USERNAMES = [
   '匿名ユーザー', '通りすがり', '青いマグカップ', '週末コーヒー', 'ねむたいパンダ',
@@ -44,6 +44,12 @@ const statementUsernames = USERNAME_NOUNS.flatMap((noun) =>
   USERNAME_SUFFIXES.map((suffix) => `${noun}${suffix}`),
 );
 
+const detailedUsernames = USERNAME_PREFIXES.flatMap((prefix) =>
+  USERNAME_NOUNS.flatMap((noun) =>
+    USERNAME_SUFFIXES.map((suffix) => `${prefix}${noun}${suffix}`),
+  ),
+).filter((username) => username.length <= 20);
+
 const interleave = (groups: readonly (readonly string[])[]) => {
   const values: string[] = [];
   const maxLength = Math.max(...groups.map((group) => group.length));
@@ -59,7 +65,7 @@ const interleave = (groups: readonly (readonly string[])[]) => {
 export const STREAMER_USERNAMES = [
   ...new Set([
     ...CURATED_USERNAMES,
-    ...interleave([descriptiveUsernames, sceneUsernames, statementUsernames]),
+    ...interleave([descriptiveUsernames, sceneUsernames, statementUsernames, detailedUsernames]),
   ]),
 ].slice(0, TARGET_USERNAME_COUNT);
 

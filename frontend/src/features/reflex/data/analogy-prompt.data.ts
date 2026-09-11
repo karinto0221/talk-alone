@@ -11,6 +11,8 @@ const INTENSIFIERS = [
   '怖いくらい', 'びっくりするほど', '見たことないくらい', 'どうかしてるほど', 'ありえないくらい',
 ] as const;
 
+const INTENSITY_CONTEXTS = ['', '見た目が', '動きが', '触ると', '想像より'] as const;
+
 const ADJECTIVES = [
   '遅い', '速い', '高い', '安い', '苦い', '甘い', '辛い', '綺麗', '汚い', '狭い',
   '広い', '長い', '短い', '硬い', '柔らかい', '静か', 'うるさい', '古い', '新しい', '眩しい',
@@ -32,6 +34,8 @@ const OBJECTS_BY_ACTION = {
   '配達する': ['富士山', '運動会', '観覧車', '体育館', '虹', 'エレベーター', '夏休み', '東京タワー'],
 } as const;
 
+const OBJECT_MODIFIERS = ['', '巨大な', '透明な', '金色の', '空飛ぶ'] as const;
+
 const NOUNS_BY_ADJECTIVE = {
   '低い': ['山', '天井', 'ハードル', '声', '目標'],
   '高い': ['プリン', '自転車', 'おにぎり', 'ベンチ', '帽子'],
@@ -51,13 +55,25 @@ const NOUNS_BY_ADJECTIVE = {
   '大きい': ['消しゴム', '目薬', '付箋', '飴', 'イヤホン'],
 } as const;
 
+const DESCRIPTION_MODIFIERS = ['', '世界一', '町で一番', '想像以上に', '妙に'] as const;
+
+const objectActionVariationCount = Object.values(OBJECTS_BY_ACTION)
+  .reduce((total, objects) => total + objects.length, 0) * OBJECT_MODIFIERS.length;
+const descriptionVariationCount = Object.values(NOUNS_BY_ADJECTIVE)
+  .reduce((total, nouns) => total + nouns.length, 0) * DESCRIPTION_MODIFIERS.length;
+
+export const ANALOGY_PROMPT_VARIATION_COUNT =
+  INTENSITY_CONTEXTS.length * INTENSIFIERS.length * ADJECTIVES.length
+  + objectActionVariationCount
+  + descriptionVariationCount;
+
 const sample = <T>(items: readonly T[]) => items[Math.floor(Math.random() * items.length)];
 
 function createIntensityPrompt(): AnalogyPrompt {
   return {
     kind: 'intensity',
     label: '特徴を例える',
-    text: `${sample(INTENSIFIERS)}${sample(ADJECTIVES)}`,
+    text: `${sample(INTENSITY_CONTEXTS)}${sample(INTENSIFIERS)}${sample(ADJECTIVES)}`,
   };
 }
 
@@ -67,7 +83,7 @@ function createObjectActionPrompt(): AnalogyPrompt {
   return {
     kind: 'object_action',
     label: '無茶振りに返す',
-    text: `${sample(OBJECTS_BY_ACTION[action])}を${action}`,
+    text: `${sample(OBJECT_MODIFIERS)}${sample(OBJECTS_BY_ACTION[action])}を${action}`,
   };
 }
 
@@ -77,7 +93,7 @@ function createDescriptionPrompt(): AnalogyPrompt {
   return {
     kind: 'description',
     label: '具体例を出す',
-    text: `${adjective}${sample(NOUNS_BY_ADJECTIVE[adjective])}`,
+    text: `${sample(DESCRIPTION_MODIFIERS)}${adjective}${sample(NOUNS_BY_ADJECTIVE[adjective])}`,
   };
 }
 

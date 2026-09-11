@@ -1,40 +1,38 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Category } from '../../api';
-import { useCategoriesApi } from '../../api/hook/useCategoriesApi';
 import { ActiveSession } from './component/ActiveSession';
 import { SessionReady } from './component/SessionReady';
 import { usePracticeSession } from './hook/usePracticeSession';
 import { useTemporaryResult } from '../result/context/TemporaryResultContext';
-import type { Speech } from '../../api';
+import type { PracticeResult } from '../../domain/practice';
 import type { RecordingResult } from './hook/useAudioRecorder';
 import type { PracticeMode, ReflexTrainingType } from './type';
 import { StreamerSession } from '../streamer';
+import type { StreamerCommentFrequency } from '../streamer/config/comment-frequency';
 import { ReflexSession } from '../reflex';
+import { listCategories } from './service/practice-content.service';
 
 const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
 
 export function PracticeFeature() {
   const navigate = useNavigate();
-  const { setResult } = useTemporaryResult();
-  const complete = useCallback((speech: Speech, recording: RecordingResult | null) => {
-    setResult({ speech, recording });
-    navigate(`/result/${speech.id}`);
+  const { clearResult, setResult } = useTemporaryResult();
+  const complete = useCallback((practiceResult: PracticeResult, recording: RecordingResult | null) => {
+    setResult({ practiceResult, recording });
+    navigate('/result');
   }, [navigate, setResult]);
   const session = usePracticeSession(complete);
-  const categoriesApi = useCategoriesApi();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categories = listCategories();
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('standard');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
   const [durationMinutes, setDurationMinutes] = useState(10);
+  const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');
   const [streamerActive, setStreamerActive] = useState(false);
   const [reflexActive, setReflexActive] = useState(false);
   const { state } = session;
 
-  useEffect(() => {
-    void categoriesApi.listCategories().then(setCategories).catch(() => undefined);
-  }, [categoriesApi.listCategories]);
+  useEffect(() => clearResult(), [clearResult]);
 
   const start = () => {
     if (mode === 'streamer') {
@@ -50,32 +48,31 @@ export function PracticeFeature() {
   };
 
   if (streamerActive) {
-    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} onExit={() => setStreamerActive(false)} /></main>;
+    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} onExit={() => setStreamerActive(false)} /></main>;
   }
 
   if (reflexActive) {
     return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} onExit={() => setReflexActive(false)} /></main>;
   }
 
-  const usesCategory = mode === 'standard' || mode === 'word';
-
   return (
     <main className="page practice-page">
-      {(session.error || (usesCategory && categoriesApi.error)) && <div className="error-banner" role="alert">{session.error || categoriesApi.error}</div>}
+      {session.error && <div className="error-banner" role="alert">{session.error}</div>}
       {session.recordingNotice && <div className="notice-banner" role="status">{session.recordingNotice}</div>}
       {state.phase === 'idle' || state.phase === 'preparing' ? (
         <SessionReady
           loading={state.phase === 'preparing'}
-          categoriesLoading={categoriesApi.loading}
           categories={categories}
           categoryId={categoryId}
           mode={mode}
           reflexTrainingType={reflexTrainingType}
           durationMinutes={durationMinutes}
+          streamerCommentFrequency={streamerCommentFrequency}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
           onReflexTrainingTypeChange={setReflexTrainingType}
           onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
+          onStreamerCommentFrequencyChange={setStreamerCommentFrequency}
           onStart={start}
         />
       ) : state.topic ? (

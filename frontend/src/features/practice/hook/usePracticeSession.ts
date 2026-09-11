@@ -1,63 +1,63 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSpeechesApi } from '../../../api/hook/useSpeechesApi';
-import { useTopicsApi } from '../../../api/hook/useTopicsApi';
 import type { PracticeOptions, PracticeState } from '../type';
 import { SESSION_SECONDS } from '../util/time';
 import { useAudioRecorder, type RecordingResult } from './useAudioRecorder';
-import type { Speech } from '../../../api';
+import type { PracticeResult } from '../../../domain/practice';
+import { createRandomHint, createRandomTopic } from '../service/practice-content.service';
 
-const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0, hint: '', helpCount: 0 };
+const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0, hint: '' };
 
-export function usePracticeSession(onComplete: (speech: Speech, recording: RecordingResult | null) => void) {
+export function usePracticeSession(onComplete: (result: PracticeResult, recording: RecordingResult | null) => void) {
   const [state, setState] = useState(initialState);
   const timer = useRef<number>();
-  const topicsApi = useTopicsApi();
-  const speechesApi = useSpeechesApi();
   const recorder = useAudioRecorder();
+  const [error, setError] = useState('');
   const [recordingNotice, setRecordingNotice] = useState('');
   const stopping = useRef(false);
 
   const start = useCallback(async (options: PracticeOptions) => {
     setState({ ...initialState, phase: 'preparing' });
+    setError('');
     setRecordingNotice('');
     stopping.current = false;
     try {
-      const topic = await topicsApi.getRandomTopic(options);
+      const topic = createRandomTopic(options);
       const recordingStarted = await recorder.start();
       if (!recordingStarted) setRecordingNotice('マイクを利用できないため、録音なしで開始しました。');
       setState({ ...initialState, phase: 'speaking', topic });
-    } catch { setState(initialState); }
-  }, [recorder.start, topicsApi.getRandomTopic]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'お題を準備できませんでした。');
+      setState(initialState);
+    }
+  }, [recorder.start]);
 
   const stop = useCallback(async () => {
     if (!state.topic || state.phase !== 'speaking' || stopping.current) return;
     stopping.current = true;
-    setState((current) => ({ ...current, phase: 'saving' }));
+    setState((current) => ({ ...current, phase: 'finishing' }));
     try {
-      const [speech, recording] = await Promise.all([
-        speechesApi.createSpeech({
-          topic: state.topic.text,
-          categoryId: state.topic.categoryId,
-          mode: state.topic.mode,
-          durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),
-          helpCount: state.helpCount,
-        }),
-        recorder.stop(),
-      ]);
-      onComplete(speech, recording);
-    } catch {
+      const recording = await recorder.stop();
+      onComplete({
+        topic: state.topic.text,
+        categoryName: state.topic.categoryName,
+        mode: state.topic.mode,
+        durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),
+        completedAt: new Date().toISOString(),
+      }, recording);
+    } catch (cause) {
       stopping.current = false;
+      setError(cause instanceof Error ? cause.message : '録音を終了できませんでした。');
       setState((current) => ({ ...current, phase: 'speaking' }));
     }
-  }, [onComplete, recorder.stop, speechesApi.createSpeech, state]);
+  }, [onComplete, recorder.stop, state]);
 
-  const requestHint = useCallback(async () => {
+  const requestHint = useCallback(() => {
     if (!state.topic || state.phase !== 'speaking') return;
-    try {
-      const result = await topicsApi.createHint(state.topic.text, state.topic.categoryId);
-      setState((current) => ({ ...current, hint: result.question, helpCount: current.helpCount + 1 }));
-    } catch { /* error is surfaced by the API hook */ }
-  }, [state.topic, state.phase, topicsApi.createHint]);
+    setState((current) => ({
+      ...current,
+      hint: createRandomHint(state.topic!.text, state.topic!.categoryId, current.hint),
+    }));
+  }, [state.topic, state.phase]);
 
   useEffect(() => {
     if (state.phase !== 'speaking') return;
@@ -73,8 +73,8 @@ export function usePracticeSession(onComplete: (speech: Speech, recording: Recor
     state,
     remainingSeconds: SESSION_SECONDS - state.elapsedSeconds,
     progress: Math.min(100, (state.elapsedSeconds / SESSION_SECONDS) * 100),
-    error: topicsApi.error || speechesApi.error,
-    hintLoading: topicsApi.loading && state.phase === 'speaking',
+    error,
+    hintLoading: false,
     recordingStatus: recorder.status,
     recordingNotice,
     start,

@@ -1,37 +1,40 @@
 import { ArrowRight, Clock3, FileText, MessageCircle, Radio, Shuffle, Sparkles, Type, Zap } from 'lucide-react';
-import type { Category } from '../../../api';
+import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import type { PracticeMode, ReflexTrainingType } from '../type';
 import { formatTime } from '../util/time';
+import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../../streamer/config/comment-frequency';
 
 type Props = {
   loading: boolean;
-  categoriesLoading: boolean;
-  categories: Category[];
+  categories: readonly Category[];
   categoryId: string;
   mode: PracticeMode;
   reflexTrainingType: ReflexTrainingType;
   durationMinutes: number;
+  streamerCommentFrequency: StreamerCommentFrequency;
   onCategoryChange: (categoryId: string) => void;
   onModeChange: (mode: PracticeMode) => void;
   onReflexTrainingTypeChange: (trainingType: ReflexTrainingType) => void;
   onDurationChange: (durationMinutes: number) => void;
+  onStreamerCommentFrequencyChange: (frequency: StreamerCommentFrequency) => void;
   onStart: () => void;
 };
 
 export function SessionReady({
   loading,
-  categoriesLoading,
   categories,
   categoryId,
   mode,
   reflexTrainingType,
   durationMinutes,
+  streamerCommentFrequency,
   onCategoryChange,
   onModeChange,
   onReflexTrainingTypeChange,
   onDurationChange,
+  onStreamerCommentFrequencyChange,
   onStart,
 }: Props) {
   const selectedCategory = categories.find((category) => category.id === categoryId);
@@ -76,14 +79,35 @@ export function SessionReady({
             </div>
           </fieldset>
           {mode === 'streamer' ? (
-            <label className="setting-group duration-setting">
-              <span>練習時間</span>
-              <div className="duration-input">
-                <Clock3 size={15} />
-                <input type="number" min="1" max="60" step="1" value={durationMinutes} onChange={(event) => onDurationChange(Number(event.target.value))} />
-                <b>分</b>
-              </div>
-            </label>
+            <>
+              <label className="setting-group duration-setting">
+                <span>練習時間</span>
+                <div className="duration-input">
+                  <Clock3 size={15} />
+                  <input type="number" min="1" max="60" step="1" value={durationMinutes} onChange={(event) => onDurationChange(Number(event.target.value))} />
+                  <b>分</b>
+                </div>
+              </label>
+              <fieldset className="setting-group">
+                <legend>コメント頻度</legend>
+                <div className="frequency-options">
+                  {Object.entries(STREAMER_COMMENT_FREQUENCIES).map(([frequencyId, option]) => {
+                    const frequency = frequencyId as StreamerCommentFrequency;
+                    return (
+                      <label className={streamerCommentFrequency === frequency ? 'frequency-option selected' : 'frequency-option'} key={frequency}>
+                        <input
+                          type="radio"
+                          name="streamer-comment-frequency"
+                          checked={streamerCommentFrequency === frequency}
+                          onChange={() => onStreamerCommentFrequencyChange(frequency)}
+                        />
+                        <span><b>{option.label}</b><small>{option.rangeLabel}</small></span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            </>
           ) : mode === 'reflex' ? (
             <fieldset className="setting-group">
               <legend>トレーニング</legend>
@@ -105,7 +129,7 @@ export function SessionReady({
               <span>ジャンル</span>
               <div className="select-wrap">
                 <Shuffle size={15} />
-                <select value={categoryId} onChange={(event) => onCategoryChange(event.target.value)} disabled={categoriesLoading}>
+                <select value={categoryId} onChange={(event) => onCategoryChange(event.target.value)}>
                   <option value="">ランダム</option>
                   {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
                 </select>
@@ -115,10 +139,10 @@ export function SessionReady({
         </div>
         <Button
           onClick={onStart}
-          disabled={loading || (usesCategory && (categoriesLoading || categories.length === 0))}
-          icon={loading || (usesCategory && categoriesLoading) ? <LoadingSpinner /> : <ArrowRight size={18} />}
+          disabled={loading || (usesCategory && categories.length === 0)}
+          icon={loading ? <LoadingSpinner /> : <ArrowRight size={18} />}
         >
-          {loading ? 'お題を取得中' : usesCategory && categoriesLoading ? 'ジャンルを取得中' : '開始'}
+          {loading ? '録音を準備中' : '開始'}
         </Button>
       </div>
       <div className="timer-preview" aria-hidden="true">
@@ -127,7 +151,7 @@ export function SessionReady({
         <div className="preview-track"><span /></div>
         <div className="preview-grid">
           <span>{mode === 'streamer' || mode === 'reflex' ? 'PROMPT' : 'TOPIC'}</span>
-          <span>{mode === 'streamer' ? 'RANDOM COMMENTS' : mode === 'reflex' ? 'RANDOM' : selectedCategory?.name ?? 'RANDOM'}</span>
+          <span>{mode === 'streamer' ? `${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].label} · ${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].rangeLabel}` : mode === 'reflex' ? 'RANDOM' : selectedCategory?.name ?? 'RANDOM'}</span>
           <span>MODE</span>
           <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : mode === 'word' ? 'WORD' : 'STANDARD'}</span>
           <span>LIMIT</span>

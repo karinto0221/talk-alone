@@ -2,13 +2,23 @@
   "name": "talk-alone",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["frontend", "backend"],
+  "workspaces": ["frontend"],
   "scripts": {
-    "dev": "concurrently -n frontend,backend -c blue,cyan \"npm run dev --workspace frontend\" \"npm run start:dev --workspace backend\"",
-    "build": "npm run build --workspace frontend && npm run build --workspace backend",
-    "typecheck": "npm run typecheck --workspace frontend && npm run typecheck --workspace backend",
-    "test": "npm run test --workspace backend"
+    "dev": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "typecheck": "npm run typecheck --workspace frontend",
+    "lint": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "test": "npm run test --workspace frontend",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:macos:universal": "tauri build --bundles app,dmg --target universal-apple-darwin",
+    "tauri:build:windows:cross": "PATH=\"/opt/homebrew/opt/llvm/bin:$PATH\" tauri build --bundles nsis --runner cargo-xwin --target x86_64-pc-windows-msvc"
   },
-  "devDependencies": { "concurrently": "^9.2.1" },
-  "engines": { "node": ">=20" }
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }

@@ -1,5 +1,5 @@
 import { Lightbulb, MicOff, Square } from 'lucide-react';
-import type { Topic } from '../../../api';
+import type { Topic } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import type { PracticePhase } from '../type';
@@ -28,8 +28,8 @@ export function ActiveSession({ phase, topic, remaining, progress, hint, hintLoa
       </article>
       {hint && <aside className="hint-panel"><Lightbulb size={18} /><div><span>ヒント</span><p>{hint}</p></div></aside>}
       <div className="session-controls">
-        <Button variant="secondary" onClick={onHint} disabled={hintLoading || phase === 'saving'} icon={hintLoading ? <LoadingSpinner /> : <Lightbulb size={17} />}>ヒントを表示</Button>
-        <Button variant="ghost" onClick={onStop} disabled={phase === 'saving'} icon={phase === 'saving' ? <LoadingSpinner /> : <Square size={15} fill="currentColor" />}>{phase === 'saving' ? '保存中' : '終了'}</Button>
+        <Button variant="secondary" onClick={onHint} disabled={hintLoading || phase === 'finishing'} icon={hintLoading ? <LoadingSpinner /> : <Lightbulb size={17} />}>ヒントを表示</Button>
+        <Button variant="ghost" onClick={onStop} disabled={phase === 'finishing'} icon={phase === 'finishing' ? <LoadingSpinner /> : <Square size={15} fill="currentColor" />}>{phase === 'finishing' ? '終了処理中' : '終了'}</Button>
       </div>
     </section>
   );
