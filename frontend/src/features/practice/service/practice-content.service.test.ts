@@ -7,6 +7,8 @@ import { CATEGORIES } from '../data/category.data';
 import { getHintCandidates } from '../data/hint.data';
 import { TOPICS } from '../data/standard-topic.data';
 import { WORD_TOPICS } from '../data/word-topic.data';
+import { ENGLISH_CATEGORIES, ENGLISH_TOPICS, ENGLISH_WORD_TOPICS, getEnglishHintCandidates } from '../data/english-practice.data';
+import { ENGLISH_STREAMER_COMMENTS, ENGLISH_STREAMER_USERNAMES } from '../../streamer/data/english-streamer.data';
 import { createRandomHint, createRandomTopic, listCategories } from './practice-content.service';
 
 describe('offline practice content', () => {
@@ -23,8 +25,8 @@ describe('offline practice content', () => {
   });
 
   it('creates topics locally for the selected category and mode', () => {
-    const standard = createRandomTopic({ categoryId: 'daily', mode: 'standard' });
-    const word = createRandomTopic({ categoryId: 'favorites', mode: 'word' });
+    const standard = createRandomTopic({ categoryId: 'daily', mode: 'standard', language: 'ja' });
+    const word = createRandomTopic({ categoryId: 'favorites', mode: 'word', language: 'ja' });
 
     expect(standard.categoryId).toBe('daily');
     expect(standard.mode).toBe('standard');
@@ -41,11 +43,37 @@ describe('offline practice content', () => {
   });
 
   it('creates hints without network access and avoids the previous hint', () => {
-    const first = createRandomHint('朝の過ごし方', 'daily');
-    const second = createRandomHint('朝の過ごし方', 'daily', first);
+    const first = createRandomHint('朝の過ごし方', 'daily', 'ja');
+    const second = createRandomHint('朝の過ごし方', 'daily', 'ja', first);
 
     expect(first.length).toBeGreaterThan(0);
     expect(second).not.toBe(first);
+  });
+
+  it('bundles natural English practice content for every category', () => {
+    expect(listCategories('en')).toEqual(ENGLISH_CATEGORIES);
+    for (const category of ENGLISH_CATEGORIES) {
+      expect(ENGLISH_TOPICS[category.id]).toHaveLength(100);
+      expect(new Set(ENGLISH_TOPICS[category.id]).size).toBe(100);
+      expect(ENGLISH_WORD_TOPICS[category.id]).toHaveLength(60);
+      expect(new Set(ENGLISH_WORD_TOPICS[category.id]).size).toBe(60);
+      expect(getEnglishHintCandidates(category.id, 'a test topic')).toHaveLength(40);
+    }
+
+    const topic = createRandomTopic({ categoryId: 'daily', mode: 'standard', language: 'en' });
+    const hint = createRandomHint(topic.text, topic.categoryId, 'en');
+    expect(topic.language).toBe('en');
+    expect(ENGLISH_TOPICS.daily).toContain(topic.text);
+    expect(hint).toMatch(/[A-Za-z]/);
+  });
+
+  it('bundles varied English chat comments and usernames', () => {
+    expect(ENGLISH_STREAMER_COMMENTS).toHaveLength(1_000);
+    expect(new Set(ENGLISH_STREAMER_COMMENTS).size).toBe(1_000);
+    expect(ENGLISH_STREAMER_USERNAMES.length).toBeGreaterThan(600);
+    expect(new Set(ENGLISH_STREAMER_USERNAMES).size).toBe(ENGLISH_STREAMER_USERNAMES.length);
+    const recent = ENGLISH_STREAMER_COMMENTS.slice(0, 10);
+    expect(recent).not.toContain(createRandomComment(recent, 'en'));
   });
 
   it('bundles 5,000 unique comments and avoids recent comments', () => {

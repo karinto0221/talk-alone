@@ -4,10 +4,12 @@ import { SESSION_SECONDS } from '../util/time';
 import { useAudioRecorder, type RecordingResult } from './useAudioRecorder';
 import type { PracticeResult } from '../../../domain/practice';
 import { createRandomHint, createRandomTopic } from '../service/practice-content.service';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0, hint: '' };
 
 export function usePracticeSession(onComplete: (result: PracticeResult, recording: RecordingResult | null) => void) {
+  const { copy } = useLanguage();
   const [state, setState] = useState(initialState);
   const timer = useRef<number>();
   const recorder = useAudioRecorder();
@@ -23,13 +25,13 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
     try {
       const topic = createRandomTopic(options);
       const recordingStarted = await recorder.start();
-      if (!recordingStarted) setRecordingNotice('マイクを利用できないため、録音なしで開始しました。');
+      if (!recordingStarted) setRecordingNotice(copy.micUnavailable);
       setState({ ...initialState, phase: 'speaking', topic });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'お題を準備できませんでした。');
+    } catch {
+      setError(copy.topicError);
       setState(initialState);
     }
-  }, [recorder.start]);
+  }, [copy.micUnavailable, copy.topicError, recorder.start]);
 
   const stop = useCallback(async () => {
     if (!state.topic || state.phase !== 'speaking' || stopping.current) return;
@@ -41,21 +43,22 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
         topic: state.topic.text,
         categoryName: state.topic.categoryName,
         mode: state.topic.mode,
+        language: state.topic.language,
         durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),
         completedAt: new Date().toISOString(),
       }, recording);
-    } catch (cause) {
+    } catch {
       stopping.current = false;
-      setError(cause instanceof Error ? cause.message : '録音を終了できませんでした。');
+      setError(copy.recordingStopError);
       setState((current) => ({ ...current, phase: 'speaking' }));
     }
-  }, [onComplete, recorder.stop, state]);
+  }, [copy.recordingStopError, onComplete, recorder.stop, state]);
 
   const requestHint = useCallback(() => {
     if (!state.topic || state.phase !== 'speaking') return;
     setState((current) => ({
       ...current,
-      hint: createRandomHint(state.topic!.text, state.topic!.categoryId, current.hint),
+      hint: createRandomHint(state.topic!.text, state.topic!.categoryId, state.topic!.language, current.hint),
     }));
   }, [state.topic, state.phase]);
 

@@ -2,14 +2,16 @@ import { ArrowLeft, CheckCircle2, MessageCircle, Radio, Square, UserRound } from
 import { useEffect, useRef } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { formatTime } from '../../practice/util/time';
-import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../config/comment-frequency';
+import type { StreamerCommentFrequency } from '../config/comment-frequency';
 import { useStreamerSession } from '../hook/useStreamerSession';
+import type { ContentLanguage } from '../../../domain/practice';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
-type Props = { durationMinutes: number; commentFrequency: StreamerCommentFrequency; onExit: () => void };
+type Props = { durationMinutes: number; commentFrequency: StreamerCommentFrequency; language: ContentLanguage; onExit: () => void };
 
-export function StreamerSession({ durationMinutes, commentFrequency, onExit }: Props) {
-  const session = useStreamerSession(durationMinutes, commentFrequency);
-  const frequency = STREAMER_COMMENT_FREQUENCIES[commentFrequency];
+export function StreamerSession({ durationMinutes, commentFrequency, language, onExit }: Props) {
+  const { copy } = useLanguage();
+  const session = useStreamerSession(durationMinutes, commentFrequency, language);
   const feedEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,12 +23,12 @@ export function StreamerSession({ durationMinutes, commentFrequency, onExit }: P
       <section className="streamer-complete">
         <CheckCircle2 size={32} />
         <p className="section-label">SESSION COMPLETE</p>
-        <h1>{durationMinutes}分間、完走しました</h1>
+        <h1>{copy.sessionComplete(durationMinutes)}</h1>
         <div className="streamer-complete-stats">
           <div><span>TIME</span><strong>{formatTime(durationMinutes * 60)}</strong></div>
           <div><span>COMMENTS</span><strong>{session.comments.length}</strong></div>
         </div>
-        <Button onClick={onExit} icon={<ArrowLeft size={17} />}>設定画面へ戻る</Button>
+        <Button onClick={onExit} icon={<ArrowLeft size={17} />}>{copy.backToSettings}</Button>
       </section>
     );
   }
@@ -40,8 +42,8 @@ export function StreamerSession({ durationMinutes, commentFrequency, onExit }: P
 
       <div className="streamer-layout">
         <article className="comment-console">
-          <header><MessageCircle size={17} /><div><span>COMMENT FEED</span><h1>コメントを拾って話し続ける</h1></div></header>
-          <div className="comment-feed" aria-live="polite" aria-label="配信コメント">
+          <header><MessageCircle size={17} /><div><span>COMMENT FEED</span><h1>{copy.keepTalking}</h1></div></header>
+          <div className="comment-feed" aria-live="polite" aria-label={copy.commentFeed}>
             {session.comments.map((comment) => (
               <div className="streamer-comment" key={comment.id}>
                 <span className="comment-avatar" aria-hidden="true"><UserRound size={15} /></span>
@@ -61,10 +63,10 @@ export function StreamerSession({ durationMinutes, commentFrequency, onExit }: P
           <div className="streamer-progress"><span style={{ width: `${session.progress}%` }} /></div>
           <dl>
             <div><dt>SESSION</dt><dd>{durationMinutes} MIN</dd></div>
-            <div><dt>FREQUENCY</dt><dd>{frequency.label}</dd></div>
+            <div><dt>FREQUENCY</dt><dd>{copy.frequency[commentFrequency]}</dd></div>
             <div><dt>RECORDING</dt><dd>OFF</dd></div>
           </dl>
-          <Button variant="ghost" onClick={onExit} icon={<Square size={14} fill="currentColor" />}>終了</Button>
+          <Button variant="ghost" onClick={onExit} icon={<Square size={14} fill="currentColor" />}>{copy.stop}</Button>
         </aside>
       </div>
     </section>

@@ -6,12 +6,14 @@ export type Category = {
 };
 
 export type TopicMode = 'standard' | 'word';
+export type ContentLanguage = 'ja' | 'en';
 
 export type Topic = {
   text: string;
   categoryId: string;
   categoryName: string;
   mode: TopicMode;
+  language: ContentLanguage;
 };
 
 export type PracticeResult = {
@@ -20,4 +22,5 @@ export type PracticeResult = {
   mode: TopicMode;
   durationSeconds: number;
   completedAt: string;
+  language: ContentLanguage;
 };

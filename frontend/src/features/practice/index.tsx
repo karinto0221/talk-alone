@@ -11,10 +11,12 @@ import { StreamerSession } from '../streamer';
 import type { StreamerCommentFrequency } from '../streamer/config/comment-frequency';
 import { ReflexSession } from '../reflex';
 import { listCategories } from './service/practice-content.service';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
 
 export function PracticeFeature() {
+  const { practiceLanguage } = useLanguage();
   const navigate = useNavigate();
   const { clearResult, setResult } = useTemporaryResult();
   const complete = useCallback((practiceResult: PracticeResult, recording: RecordingResult | null) => {
@@ -22,7 +24,7 @@ export function PracticeFeature() {
     navigate('/result');
   }, [navigate, setResult]);
   const session = usePracticeSession(complete);
-  const categories = listCategories();
+  const categories = listCategories(practiceLanguage);
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('standard');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
@@ -35,6 +37,7 @@ export function PracticeFeature() {
   useEffect(() => clearResult(), [clearResult]);
 
   const start = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     if (mode === 'streamer') {
       setDurationMinutes((current) => clampDuration(current));
       setStreamerActive(true);
@@ -44,15 +47,15 @@ export function PracticeFeature() {
       setReflexActive(true);
       return;
     }
-    void session.start({ categoryId: categoryId || undefined, mode });
+    void session.start({ categoryId: categoryId || undefined, mode, language: practiceLanguage });
   };
 
   if (streamerActive) {
-    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} onExit={() => setStreamerActive(false)} /></main>;
+    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={practiceLanguage} onExit={() => { setStreamerActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   if (reflexActive) {
-    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} onExit={() => setReflexActive(false)} /></main>;
+    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} language={practiceLanguage} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   return (

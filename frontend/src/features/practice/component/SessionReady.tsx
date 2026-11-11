@@ -1,10 +1,11 @@
-import { ArrowRight, Clock3, FileText, MessageCircle, Radio, Shuffle, Sparkles, Type, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, FileText, Languages, MessageCircle, Radio, Shuffle, Sparkles, Type, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import type { PracticeMode, ReflexTrainingType } from '../type';
 import { formatTime } from '../util/time';
 import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../../streamer/config/comment-frequency';
+import { useLanguage, type AppLanguage } from '../../../i18n/LanguageContext';
 
 type Props = {
   loading: boolean;
@@ -37,13 +38,14 @@ export function SessionReady({
   onStreamerCommentFrequencyChange,
   onStart,
 }: Props) {
+  const { practiceLanguage, setPracticeLanguage, copy } = useLanguage();
   const selectedCategory = categories.find((category) => category.id === categoryId);
   const sectionLabel = mode === 'streamer' ? 'STREAMER PRACTICE' : mode === 'reflex' ? 'QUICK RESPONSE' : '3 MINUTE SPEECH';
   const description = mode === 'streamer'
-    ? 'ランダムに届くコメントを拾い、設定した時間まで配信者として話し続けます。'
+    ? copy.streamerDescription
     : mode === 'reflex'
-      ? '表示されたコメントやお題に対して、思いついた返しをすぐに声に出します。'
-      : 'お題を選び、3分間話します。途中で話題に困った場合はヒントを表示できます。';
+      ? copy.reflexDescription
+      : copy.speechDescription;
   const usesCategory = mode === 'standard' || mode === 'word';
 
   return (
@@ -53,43 +55,53 @@ export function SessionReady({
         <h1>TALK - ALONE</h1>
         <p className="description">{description}</p>
         <div className="practice-settings">
+          <label className="setting-group practice-language-setting">
+            <span>{copy.practiceLanguage}</span>
+            <div className="select-wrap">
+              <Languages size={15} />
+              <select value={practiceLanguage} onChange={(event) => setPracticeLanguage(event.target.value as AppLanguage)}>
+                <option value="ja">{copy.japanese}</option>
+                <option value="en">{copy.english}</option>
+              </select>
+            </div>
+          </label>
           <fieldset className="setting-group">
-            <legend>練習モード</legend>
+            <legend>{copy.practiceMode}</legend>
             <div className="mode-options">
               <label className={mode === 'standard' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'standard'} onChange={() => onModeChange('standard')} />
                 <FileText size={16} />
-                <span><b>スタンダード</b><small>文章・問い</small></span>
+                <span><b>{copy.standard}</b><small>{copy.standardSub}</small></span>
               </label>
               <label className={mode === 'word' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'word'} onChange={() => onModeChange('word')} />
                 <Type size={16} />
-                <span><b>ワード</b><small>1単語のみ</small></span>
+                <span><b>{copy.word}</b><small>{copy.wordSub}</small></span>
               </label>
               <label className={mode === 'streamer' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'streamer'} onChange={() => onModeChange('streamer')} />
                 <Radio size={16} />
-                <span><b>配信者</b><small>コメント対応</small></span>
+                <span><b>{copy.streamer}</b><small>{copy.streamerSub}</small></span>
               </label>
               <label className={mode === 'reflex' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'reflex'} onChange={() => onModeChange('reflex')} />
                 <Zap size={16} />
-                <span><b>瞬発力</b><small>すぐに返す</small></span>
+                <span><b>{copy.reflex}</b><small>{copy.reflexSub}</small></span>
               </label>
             </div>
           </fieldset>
           {mode === 'streamer' ? (
             <>
               <label className="setting-group duration-setting">
-                <span>練習時間</span>
+                <span>{copy.duration}</span>
                 <div className="duration-input">
                   <Clock3 size={15} />
                   <input type="number" min="1" max="60" step="1" value={durationMinutes} onChange={(event) => onDurationChange(Number(event.target.value))} />
-                  <b>分</b>
+                  <b>{copy.minutes}</b>
                 </div>
               </label>
               <fieldset className="setting-group">
-                <legend>コメント頻度</legend>
+                <legend>{copy.commentFrequency}</legend>
                 <div className="frequency-options">
                   {Object.entries(STREAMER_COMMENT_FREQUENCIES).map(([frequencyId, option]) => {
                     const frequency = frequencyId as StreamerCommentFrequency;
@@ -101,7 +113,7 @@ export function SessionReady({
                           checked={streamerCommentFrequency === frequency}
                           onChange={() => onStreamerCommentFrequencyChange(frequency)}
                         />
-                        <span><b>{option.label}</b><small>{option.rangeLabel}</small></span>
+                        <span><b>{copy.frequency[frequency]}</b><small>{option.minSeconds}–{option.maxSeconds} {copy.seconds}</small></span>
                       </label>
                     );
                   })}
@@ -110,27 +122,27 @@ export function SessionReady({
             </>
           ) : mode === 'reflex' ? (
             <fieldset className="setting-group">
-              <legend>トレーニング</legend>
+              <legend>{copy.training}</legend>
               <div className="reflex-type-options">
                 <label className={reflexTrainingType === 'comment' ? 'reflex-type-option selected' : 'reflex-type-option'}>
                   <input type="radio" name="reflex-type" checked={reflexTrainingType === 'comment'} onChange={() => onReflexTrainingTypeChange('comment')} />
                   <MessageCircle size={16} />
-                  <span><b>コメント返し</b><small>配信コメントに返す</small></span>
+                  <span><b>{copy.commentReply}</b><small>{copy.commentReplySub}</small></span>
                 </label>
                 <label className={reflexTrainingType === 'analogy' ? 'reflex-type-option selected' : 'reflex-type-option'}>
                   <input type="radio" name="reflex-type" checked={reflexTrainingType === 'analogy'} onChange={() => onReflexTrainingTypeChange('analogy')} />
                   <Sparkles size={16} />
-                  <span><b>例えツッコミ</b><small>3形式をミックス</small></span>
+                  <span><b>{copy.analogy}</b><small>{copy.analogySub}</small></span>
                 </label>
               </div>
             </fieldset>
           ) : (
             <label className="setting-group category-setting">
-              <span>ジャンル</span>
+              <span>{copy.category}</span>
               <div className="select-wrap">
                 <Shuffle size={15} />
                 <select value={categoryId} onChange={(event) => onCategoryChange(event.target.value)}>
-                  <option value="">ランダム</option>
+                  <option value="">{copy.random}</option>
                   {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
                 </select>
               </div>
@@ -142,7 +154,7 @@ export function SessionReady({
           disabled={loading || (usesCategory && categories.length === 0)}
           icon={loading ? <LoadingSpinner /> : <ArrowRight size={18} />}
         >
-          {loading ? '録音を準備中' : '開始'}
+          {loading ? copy.preparingRecording : copy.start}
         </Button>
       </div>
       <div className="timer-preview" aria-hidden="true">
@@ -151,7 +163,7 @@ export function SessionReady({
         <div className="preview-track"><span /></div>
         <div className="preview-grid">
           <span>{mode === 'streamer' || mode === 'reflex' ? 'PROMPT' : 'TOPIC'}</span>
-          <span>{mode === 'streamer' ? `${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].label} · ${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].rangeLabel}` : mode === 'reflex' ? 'RANDOM' : selectedCategory?.name ?? 'RANDOM'}</span>
+          <span>{mode === 'streamer' ? `${copy.frequency[streamerCommentFrequency]} · ${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].minSeconds}–${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].maxSeconds} ${copy.seconds}` : mode === 'reflex' ? 'RANDOM' : selectedCategory?.name ?? 'RANDOM'}</span>
           <span>MODE</span>
           <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : mode === 'word' ? 'WORD' : 'STANDARD'}</span>
           <span>LIMIT</span>

@@ -14,5 +14,3 @@ backend/data/
 apps/
 pnpm-lock.yaml
 pnpm-workspace.yaml
-src-tauri/target/
-src-tauri/gen/
