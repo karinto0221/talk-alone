@@ -26,7 +26,7 @@ export function PracticeFeature() {
   const session = usePracticeSession(complete);
   const categories = listCategories(practiceLanguage);
   const [categoryId, setCategoryId] = useState('');
-  const [mode, setMode] = useState<PracticeMode>('standard');
+  const [mode, setMode] = useState<PracticeMode>('speech');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
   const [durationMinutes, setDurationMinutes] = useState(10);
   const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');
@@ -47,7 +47,7 @@ export function PracticeFeature() {
       setReflexActive(true);
       return;
     }
-    void session.start({ categoryId: categoryId || undefined, mode, language: practiceLanguage });
+    void session.start({ categoryId: categoryId || undefined, language: practiceLanguage });
   };
 
   if (streamerActive) {
@@ -81,9 +81,9 @@ export function PracticeFeature() {
       ) : state.topic ? (
         <ActiveSession
           phase={state.phase} topic={state.topic} remaining={session.remainingSeconds}
-          progress={session.progress} hint={state.hint} hintLoading={session.hintLoading}
+          progress={session.progress}
           recordingStatus={session.recordingStatus}
-          onHint={() => void session.requestHint()} onStop={() => void session.stop()}
+          onStop={() => void session.stop()}
         />
       ) : null}
     </main>

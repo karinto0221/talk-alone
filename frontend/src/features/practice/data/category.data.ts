@@ -2,7 +2,7 @@ import type { Category } from '../../../domain/practice';
 
 export const CATEGORIES: readonly Category[] = [
   { id: 'daily', name: '日常・暮らし', description: '身近な習慣、食べ物、生活の話題', color: '#38bdf8' },
-  { id: 'favorites', name: '好きなもの', description: '趣味、動物、作品、こだわり', color: '#818cf8' },
+  { id: 'favorites', name: '好き・苦手', description: '好み、苦手なもの、趣味、こだわり', color: '#818cf8' },
   { id: 'memories', name: '思い出・経験', description: '過去の体験、学び、印象的な出来事', color: '#2dd4bf' },
   { id: 'imagination', name: 'もしも・想像', description: '自由な発想で考える仮定の話題', color: '#a78bfa' },
   { id: 'values', name: '価値観・思考', description: '人生観、選択、考え方を深める話題', color: '#60a5fa' },

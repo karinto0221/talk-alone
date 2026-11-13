@@ -1,6 +1,6 @@
 type Formatter<T> = (seed: T) => string;
 
-const TARGET_COMMENT_COUNT = 5_000;
+const TARGET_COMMENT_COUNT = 1_000;
 const BASE_COMMENT_COUNT = 1_000;
 
 const buildVariants = <T>(seeds: readonly T[], formats: readonly Formatter<T>[]) =>
@@ -287,19 +287,7 @@ const uniqueComments = [
   ...new Set([...CURATED_COMMENTS, ...interleave(generatedGroups)]),
 ];
 
-const COMMENT_STYLES: readonly ((comment: string) => string)[] = [
-  (comment) => comment,
-  (comment) => `そういえば、${comment}`,
-  (comment) => `全然関係ないけど、${comment}`,
-  (comment) => `急に思い出した。${comment}`,
-  (comment) => `今これだけ言いたかった。${comment}`,
-];
-
-const baseComments = uniqueComments.slice(0, BASE_COMMENT_COUNT);
-
-export const STREAMER_COMMENTS = [
-  ...new Set(baseComments.flatMap((comment) => COMMENT_STYLES.map((style) => style(comment)))),
-];
+export const STREAMER_COMMENTS = uniqueComments.slice(0, BASE_COMMENT_COUNT);
 
 if (STREAMER_COMMENTS.length !== TARGET_COMMENT_COUNT) {
   throw new Error(`Streamer comments must contain ${TARGET_COMMENT_COUNT} unique entries.`);

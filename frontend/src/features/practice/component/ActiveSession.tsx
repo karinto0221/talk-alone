@@ -1,4 +1,4 @@
-import { Lightbulb, MicOff, Square } from 'lucide-react';
+import { MicOff, Square } from 'lucide-react';
 import type { Topic } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -8,11 +8,11 @@ import type { RecordingStatus } from '../hook/useAudioRecorder';
 import { useLanguage } from '../../../i18n/LanguageContext';
 
 type Props = {
-  phase: PracticePhase; topic: Topic; remaining: number; progress: number; hint: string; hintLoading: boolean;
-  recordingStatus: RecordingStatus; onHint: () => void; onStop: () => void;
+  phase: PracticePhase; topic: Topic; remaining: number; progress: number;
+  recordingStatus: RecordingStatus; onStop: () => void;
 };
 
-export function ActiveSession({ phase, topic, remaining, progress, hint, hintLoading, recordingStatus, onHint, onStop }: Props) {
+export function ActiveSession({ phase, topic, remaining, progress, recordingStatus, onStop }: Props) {
   const { copy } = useLanguage();
   return (
     <section className="session-workspace">
@@ -25,12 +25,10 @@ export function ActiveSession({ phase, topic, remaining, progress, hint, hintLoa
       <div className="session-timer"><span>REMAINING</span><strong>{formatTime(remaining)}</strong></div>
       <div className="session-progress"><span style={{ width: `${progress}%` }} /></div>
       <article className="topic-panel">
-        <div className="topic-meta"><span>{topic.mode === 'word' ? 'WORD' : 'TOPIC'}</span><b>{topic.categoryName}</b></div>
+        <div className="topic-meta"><span>TOPIC</span><b>{topic.categoryName}</b></div>
         <h1>{topic.text}</h1>
       </article>
-      {hint && <aside className="hint-panel"><Lightbulb size={18} /><div><span>{copy.hint}</span><p>{hint}</p></div></aside>}
       <div className="session-controls">
-        <Button variant="secondary" onClick={onHint} disabled={hintLoading || phase === 'finishing'} icon={hintLoading ? <LoadingSpinner /> : <Lightbulb size={17} />}>{copy.showHint}</Button>
         <Button variant="ghost" onClick={onStop} disabled={phase === 'finishing'} icon={phase === 'finishing' ? <LoadingSpinner /> : <Square size={15} fill="currentColor" />}>{phase === 'finishing' ? copy.finishing : copy.stop}</Button>
       </div>
     </section>

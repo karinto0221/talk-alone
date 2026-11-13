@@ -1,4 +1,4 @@
-import { ArrowRight, Clock3, FileText, Languages, MessageCircle, Radio, Shuffle, Sparkles, Type, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, FileText, Languages, MessageCircle, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -46,7 +46,7 @@ export function SessionReady({
     : mode === 'reflex'
       ? copy.reflexDescription
       : copy.speechDescription;
-  const usesCategory = mode === 'standard' || mode === 'word';
+  const usesCategory = mode === 'speech';
 
   return (
     <section className="practice-ready">
@@ -68,15 +68,10 @@ export function SessionReady({
           <fieldset className="setting-group">
             <legend>{copy.practiceMode}</legend>
             <div className="mode-options">
-              <label className={mode === 'standard' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'standard'} onChange={() => onModeChange('standard')} />
+              <label className={mode === 'speech' ? 'mode-option selected' : 'mode-option'}>
+                <input type="radio" name="topic-mode" checked={mode === 'speech'} onChange={() => onModeChange('speech')} />
                 <FileText size={16} />
-                <span><b>{copy.standard}</b><small>{copy.standardSub}</small></span>
-              </label>
-              <label className={mode === 'word' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'word'} onChange={() => onModeChange('word')} />
-                <Type size={16} />
-                <span><b>{copy.word}</b><small>{copy.wordSub}</small></span>
+                <span><b>{copy.speechMode}</b><small>{copy.speechModeSub}</small></span>
               </label>
               <label className={mode === 'streamer' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'streamer'} onChange={() => onModeChange('streamer')} />
@@ -165,7 +160,7 @@ export function SessionReady({
           <span>{mode === 'streamer' || mode === 'reflex' ? 'PROMPT' : 'TOPIC'}</span>
           <span>{mode === 'streamer' ? `${copy.frequency[streamerCommentFrequency]} · ${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].minSeconds}–${STREAMER_COMMENT_FREQUENCIES[streamerCommentFrequency].maxSeconds} ${copy.seconds}` : mode === 'reflex' ? 'RANDOM' : selectedCategory?.name ?? 'RANDOM'}</span>
           <span>MODE</span>
-          <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : mode === 'word' ? 'WORD' : 'STANDARD'}</span>
+          <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : 'SPEECH'}</span>
           <span>LIMIT</span>
           <span>{mode === 'reflex' ? 'NONE' : mode === 'streamer' ? `${durationMinutes} MIN` : '3 MIN'}</span>
         </div>

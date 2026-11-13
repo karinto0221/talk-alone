@@ -121,9 +121,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--blue-bright); o
 .topic-meta span { color: var(--subtle); font: 700 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .15em; }
 .topic-meta b { padding: 4px 8px; border-radius: 5px; background: #162747; color: #94b7ff; font-size: 10px; }
 .topic-panel h1 { max-width: 660px; margin: 0; font-size: clamp(25px, 3.4vw, 40px); letter-spacing: -.04em; line-height: 1.45; }
-.hint-panel { display: flex; gap: 12px; align-items: flex-start; margin: 0 auto; padding: 14px 16px; max-width: 720px; border: 1px solid #294d6a; border-radius: 9px; background: #0c1b2b; color: var(--cyan); }
-.hint-panel span { display: block; font-size: 10px; font-weight: 700; color: #79cfee; }
-.hint-panel p { margin: 3px 0 0; color: #a9bbce; font-size: 13px; line-height: 1.65; }
 .session-controls { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
 .spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -246,7 +243,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--blue-bright); o
   .ready-copy > .button { width: 100%; }
   .timer-preview { padding: 24px; }
   .topic-panel { padding: 24px 18px; margin-top: 30px; min-height: 190px; }
-  .session-controls { display: grid; grid-template-columns: 1fr 1fr; }
+  .session-controls { display: grid; grid-template-columns: 1fr; }
   .streamer-page { width: min(100% - 30px, 600px); }
   .reflex-page { width: min(100% - 30px, 600px); }
   .reflex-prompt-card { min-height: 330px; padding: 26px 28px; }

@@ -4,7 +4,7 @@ const list = (source: string) => source.trim().split(/\s*\|\s*/);
 
 export const ENGLISH_CATEGORIES: readonly Category[] = [
   { id: 'daily', name: 'Daily Life', description: 'Habits, food, home, and everyday routines', color: '#38bdf8' },
-  { id: 'favorites', name: 'Favorites', description: 'Hobbies, tastes, animals, and personal interests', color: '#818cf8' },
+  { id: 'favorites', name: 'Likes & Dislikes', description: 'Preferences, dislikes, hobbies, and personal interests', color: '#818cf8' },
   { id: 'memories', name: 'Memories', description: 'Past experiences, lessons, and memorable moments', color: '#2dd4bf' },
   { id: 'imagination', name: 'What If?', description: 'Hypothetical situations and creative ideas', color: '#a78bfa' },
   { id: 'values', name: 'Values', description: 'Choices, beliefs, priorities, and ways of thinking', color: '#60a5fa' },
@@ -15,7 +15,7 @@ export const ENGLISH_CATEGORIES: readonly Category[] = [
   { id: 'debate', name: 'Debate', description: 'Take a position and explain your reasoning', color: '#4cb7d8' },
 ];
 
-const STANDARD_SEEDS: Record<string, string[]> = {
+const BASE_TOPIC_SEEDS: Record<string, string[]> = {
   daily: list('your morning routine|a meal you cook often|the best part of your home|how you spend a rainy day|your relationship with your phone|a small habit that helps you|your ideal weekend|grocery shopping|getting enough sleep|your daily commute|keeping your room tidy|what you carry every day|choosing what to wear|waiting in line|taking a walk|your favorite breakfast|a useful household item|a recent purchase|how you relax at night|something you do without thinking'),
   favorites: list('a food you never get tired of|music you return to|a film you have watched more than once|your favorite place to be alone|a smell you love|an object you use every day|your favorite season|a book you recommend|your usual drink|a sound that calms you|an animal you find fascinating|a photograph you treasure|your favorite color|a shop you enjoy visiting|your favorite time of day|a snack you always choose|a vehicle you would like to own|a game you can play for hours|something you collect|a hobby you would like to try'),
   memories: list('a childhood game|a teacher you remember|your first trip away from home|a family meal|a place where you used to live|a school friend|the first thing you bought with your own money|a mistake you can laugh about now|a compliment you still remember|a dream you had as a child|your first big challenge|a school event|a memorable summer|a graduation|a story you loved when you were younger|something unexpected that happened while traveling|a time you felt nervous|a time someone encouraged you|a hobby you gave up|an unexpected reunion'),
@@ -27,64 +27,21 @@ const STANDARD_SEEDS: Record<string, string[]> = {
   entertainment_culture: list('going to the cinema|a live concert|reading for pleasure|comics and graphic novels|a television show you recommend|video games|visiting a museum|a local festival|stand-up comedy|live theatre|photography|a novel that stayed with you|animation|podcasts and radio|traditional food|local customs|fashion|interesting buildings|watching sports|online creators'),
   debate: list('whether homework is necessary|whether school uniforms are useful|whether cash should remain available|whether a four-day workweek is better|whether phones belong in classrooms|whether cities offer a better life than small towns|whether failure is essential for growth|whether meetings should have strict time limits|whether seniority should affect pay|whether anonymous social media should exist|whether shops should open all night|whether everyone should attend university|whether workplaces need dress codes|whether printed books should be protected|whether popular destinations need visitor limits|whether children need smartphones|whether self-driving cars should be prioritized|whether pet shops should sell animals|whether cashless payment should be the default|whether students should be allowed to use AI tools'),
 };
-
-const debateClaim = (seed: string) => seed.replace(/^whether /, '');
-
-const STANDARD_FORMATS: Record<string, ReadonlyArray<(seed: string) => string>> = {
-  daily: [
-    (seed) => `Tell us about ${seed}.`, (seed) => `What do you like or dislike about ${seed}?`,
-    (seed) => `How would you improve ${seed}?`, (seed) => `Describe a recent moment involving ${seed}.`,
-    (seed) => `What does ${seed} say about the way you live?`,
-  ],
-  favorites: [
-    (seed) => `Tell us why you enjoy ${seed}.`, (seed) => `What first drew you to ${seed}?`,
-    (seed) => `How would you introduce ${seed} to a friend?`, (seed) => `Describe your ideal experience of ${seed}.`,
-    (seed) => `What makes ${seed} stand out to you?`,
-  ],
-  memories: [
-    (seed) => `Describe a memory involving ${seed}.`, (seed) => `Who do you associate with ${seed}?`,
-    (seed) => `What detail about ${seed} can you still remember clearly?`, (seed) => `What did ${seed} teach you?`,
-    (seed) => `How do you feel when you think about ${seed} now?`,
-  ],
-  imagination: [
-    (seed) => `Imagine ${seed}. What happens first?`, (seed) => `What would be the best part of ${seed}?`,
-    (seed) => `What unexpected problem could come with ${seed}?`, (seed) => `How would everyday life change with ${seed}?`,
-    (seed) => `Tell a short story about ${seed}.`,
-  ],
-  values: [
-    (seed) => `What does ${seed} mean to you?`, (seed) => `Tell us about a time when ${seed} mattered.`,
-    (seed) => `Is ${seed} something people can learn?`, (seed) => `What can make ${seed} difficult to protect?`,
-    (seed) => `How has your view of ${seed} changed?`,
-  ],
-  society: [
-    (seed) => `How is ${seed} changing everyday life?`, (seed) => `What concerns you most about ${seed}?`,
-    (seed) => `Who benefits most from ${seed}?`, (seed) => `What might ${seed} look like ten years from now?`,
-    (seed) => `What should society do differently about ${seed}?`,
-  ],
-  work_learning: [
-    (seed) => `What have you learned about ${seed}?`, (seed) => `What makes ${seed} difficult?`,
-    (seed) => `What advice would you give a beginner about ${seed}?`, (seed) => `Describe a good experience involving ${seed}.`,
-    (seed) => `How would you improve your approach to ${seed}?`,
-  ],
-  relationships: [
-    (seed) => `What matters most when it comes to ${seed}?`, (seed) => `Describe a time when ${seed} went well.`,
-    (seed) => `What makes ${seed} difficult?`, (seed) => `What have you learned about ${seed}?`,
-    (seed) => `How would you handle ${seed} differently now?`,
-  ],
-  entertainment_culture: [
-    (seed) => `What do you enjoy about ${seed}?`, (seed) => `Tell us about a memorable experience of ${seed}.`,
-    (seed) => `How would you introduce ${seed} to a newcomer?`, (seed) => `How has ${seed} changed over time?`,
-    (seed) => `What influence can ${seed} have on people?`,
-  ],
-  debate: [
-    (seed) => `Do you agree that ${debateClaim(seed)}? Explain your position.`, (seed) => `Make the strongest case for the view that ${debateClaim(seed)}.`,
-    (seed) => `Make the strongest case against the view that ${debateClaim(seed)}.`, (seed) => `What is often overlooked in the debate over ${seed}?`,
-    (seed) => `What evidence could change your position on ${seed}?`,
-  ],
+const ADDITIONAL_TOPIC_SEEDS: Record<string, string[]> = {
+  daily: list('your lunch break|your evening routine|what you do after getting home|weekday lunches|weekend breakfasts|the hour before bed|the first thing you do after waking up|getting ready for work or school|what is usually in your fridge|eating out|stopping at a convenience store|doing laundry|cleaning the house|taking a bath or shower|planning a meal|organizing your bag|planning your week|coping with hot days|coping with cold days|taking breaks at home'),
+  favorites: list('a food you dislike|a drink you avoid|a smell you cannot stand|a sound that bothers you|a season you struggle with|a popular film you could not finish|a place that tires you out|a hobby that did not suit you|something you decided to give away|a trend you do not understand|a food you learned to like|a food you disliked as a child|a favorite you hesitate to recommend|a flavor you always choose|a view that calms you|a texture you love|a phrase you like|a situation you find uncomfortable|your favorite kind of weather|a piece of stationery you care about'),
+  memories: list('your first solo trip|an after-school detour|a family vacation|a childhood birthday|your first part-time job|an argument with a friend|an object you once treasured|moving to a new home|your first presentation|an important exam|recovering from an illness or injury|the first meal you cooked|a childhood misunderstanding|a landscape you cannot forget|an embarrassing public mistake|an unexpected farewell|a surprise gift|something you practiced for years|a challenge you abandoned|a turning point in your life'),
+  imagination: list('a day with thirty hours|never needing sleep|a conversation with your future self|one week inside your favorite story|understanding every language|a button that changes the taste of food|choosing the weather for one day|a secret room appearing in your home|entering a photograph|living in any historical era for a year|redoing one failure|hearing everyone’s thoughts for one day|a door that opens anywhere in the world|removing one household chore forever|having a theme song wherever you go|animals using social media|everyone receiving one superpower|replaying one day from the past|designing a new planet|a machine that records dreams'),
+  values: list('honesty|tolerance|humility|confidence|patience|gratitude|health|family|friendship|love|knowledge|experience|common sense|conviction|peace of mind|excitement|efficiency|carefulness|solitude|connection'),
+  society: list('privacy and surveillance|misinformation|information during disasters|children and smartphones|online healthcare|tourism and local communities|rising prices|labor shortages|local disaster planning|delivery services|support for parents|transportation for older people|the sharing economy|personal data|commercial space travel|fully automated jobs|declining local communities|lifelong learning|printed and digital books|living in virtual spaces'),
+  work_learning: list('job interviews|giving presentations|working with deadlines|recovering your focus|receiving feedback|teaching a junior colleague|talking with a manager|your role in a team|taking useful notes|learning through reading|studying alone|online courses|the week before an exam|studying a weak subject|putting knowledge into practice|changing careers|having a side job|overworking|switching off after work|building expertise'),
+  relationships: list('messaging a friend|conflict within a family|workplace relationships|a long-distance friendship|making a first impression|saying what you really think|saying no|asking for support|keeping a secret|clearing up a misunderstanding|someone you respect|a person who is easy to be around|working with a friend|talking with someone much older or younger|an online friendship|dealing with jealousy|comfortable silence|losing someone’s trust|forgiving someone|setting mutual boundaries'),
+  entertainment_culture: list('podcasts|documentaries|board games|comedy|dance|poetry|short poems|crafts|pottery|graphic design|audio streaming|livestreaming|fan fiction|classic works|subcultures|international food|traditional performing arts|advertising|character design|collecting'),
+  debate: list('whether social media should require real names|whether students should study abroad before high school|whether schools should abolish regular exams|whether remote work should be the default|whether every company should allow side jobs|whether voting should be compulsory|whether public transport should be free|whether convenience stores should reduce overnight hours|whether all school classes should be available online|whether children need age limits for social media|whether university tuition should be free|whether pet ownership should require a license|whether zoos are still necessary|whether cities should restrict private cars|whether plastic shopping bags should be banned|whether public surveillance cameras should be expanded|whether AI-generated work should carry a label|whether a four-day workweek should be standard|whether shops should be allowed to refuse cash|whether popular destinations should charge a tourism tax'),
 };
 
-export const ENGLISH_TOPICS = Object.fromEntries(Object.entries(STANDARD_SEEDS).map(([id, seeds]) => [
-  id, seeds.flatMap((seed) => STANDARD_FORMATS[id].map((format) => format(seed))),
+export const ENGLISH_TOPIC_SEEDS = Object.fromEntries(Object.entries(BASE_TOPIC_SEEDS).map(([id, seeds]) => [
+  id, [...seeds, ...(ADDITIONAL_TOPIC_SEEDS[id] ?? [])]
 ])) as Record<string, string[]>;
 
 export const ENGLISH_WORD_TOPICS: Record<string, string[]> = {
@@ -99,42 +56,3 @@ export const ENGLISH_WORD_TOPICS: Record<string, string[]> = {
   entertainment_culture: list('comic|novel|film|music|theatre|comedy|dance|poetry|animation|game|radio|television|streaming|photography|painting|sculpture|architecture|museum|bookstore|festival|fireworks|fashion|cuisine|story|hero|villain|dialogue|ending|sequel|actor|writer|director|musician|mystery|biography|classic|trend|criticism|performance|exhibition|concert|cinema|podcast|documentary|folklore|myth|costume|instrument|stage|audience|soundtrack|script|character|chapter|gallery|ballet|opera|craft|tradition|subculture'),
   debate: list('uniforms|homework|grades|university|cash|taxation|minimum wage|overtime|retirement|social media|anonymity|advertising|privacy|surveillance|artificial intelligence|electric cars|nuclear power|food waste|recycling|cities|tourism|animal testing|vegetarianism|voting age|public manners|nightlife|delivery|subscriptions|competition|equality|efficiency|regulation|responsibility|majority rule|online classes|scholarships|school choice|free speech|censorship|remote work|universal income|immigration|public transport|facial recognition|four-day week|smartphones|screen time|dress codes|standardized tests|renewable energy|carbon tax|plastic bags|cashless payment|self-driving cars|zoos|overtourism|digital books|college debt|workplace monitoring|data ownership'),
 };
-
-const COMMON_HINTS = [
-  (topic: string) => `How would you explain “${topic}” to someone unfamiliar with it?`,
-  (topic: string) => `What is the first specific scene that comes to mind when you hear “${topic}”?`,
-  (topic: string) => `What personal experience connects you to “${topic}”?`,
-  (topic: string) => `What do you like and dislike about “${topic}”?`,
-  (topic: string) => `How has “${topic}” changed over time?`,
-  (topic: string) => `What might another person disagree with you about here?`,
-  (topic: string) => `What is one surprising detail about “${topic}”?`,
-  (topic: string) => `What would happen if “${topic}” disappeared tomorrow?`,
-  (topic: string) => `How could “${topic}” be improved?`,
-  (topic: string) => `What mistake have you made involving “${topic}”?`,
-  (topic: string) => `Who would you most like to discuss “${topic}” with?`,
-  (topic: string) => `What is a common misunderstanding about “${topic}”?`,
-  (topic: string) => `What lesson can people learn from “${topic}”?`,
-  (topic: string) => `What object or image best represents “${topic}”?`,
-  (topic: string) => `How would your younger self talk about “${topic}”?`,
-  (topic: string) => `What is the strongest argument against your view of “${topic}”?`,
-  (topic: string) => `What question about “${topic}” would you ask an expert?`,
-  (topic: string) => `What small action related to “${topic}” could you take tomorrow?`,
-  (topic: string) => `How does “${topic}” affect everyday life?`,
-  (topic: string) => `Can you tell a short story that includes “${topic}”?`,
-];
-
-const CATEGORY_ANGLES: Record<string, string[]> = {
-  daily: ['convenience', 'routine', 'cost', 'comfort'], favorites: ['personal taste', 'recommendations', 'first impressions', 'lasting appeal'], memories: ['people involved', 'feelings at the time', 'what changed afterward', 'details you still remember'], imagination: ['the first day', 'unexpected problems', 'who would join you', 'how society would change'], values: ['a difficult choice', 'the opposite value', 'a real-life example', 'what shaped your view'], society: ['who benefits', 'who may be harmed', 'long-term effects', 'what individuals can do'], work_learning: ['beginner advice', 'a useful method', 'a common mistake', 'the ideal environment'], relationships: ['the other person’s view', 'healthy boundaries', 'a specific conversation', 'how trust is built'], entertainment_culture: ['a memorable scene', 'the creator’s intention', 'cultural influence', 'how it may change'], debate: ['the strongest argument for it', 'the strongest argument against it', 'a reasonable exception', 'what could change your mind'],
-};
-
-export function getEnglishHintCandidates(categoryId: string, topic: string) {
-  const angles = CATEGORY_ANGLES[categoryId] ?? [];
-  return [
-    ...COMMON_HINTS.map((create) => create(topic)),
-    ...angles.flatMap((angle) => [
-      `How does ${angle} relate to “${topic}”?`, `Look at “${topic}” through the lens of ${angle}.`,
-      `Give a concrete example connecting “${topic}” and ${angle}.`, `What would you say about ${angle} when discussing “${topic}”?`,
-      `Use ${angle} as a starting point and continue talking about “${topic}”.`,
-    ]),
-  ];
-}

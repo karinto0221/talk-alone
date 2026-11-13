@@ -31,7 +31,7 @@ export function ResultFeature() {
           <FileText size={28} />
           <h1>{copy.noResult}</h1>
           <p>{copy.noResultBody}</p>
-          <Link className="text-link" to="/"><ArrowLeft size={15} />{copy.backToPractice}</Link>
+          <Link className="text-link" to="/"><ArrowLeft size={15} />{copy.backToTop}</Link>
         </div>
       </main>
     );
@@ -60,12 +60,12 @@ export function ResultFeature() {
           <p className="section-label">SESSION RESULT</p>
           <h1>{copy.speechResult}</h1>
         </div>
-        <Link className="text-link" to="/" onClick={clearResult}><ArrowLeft size={15} />{copy.nextSpeech}</Link>
+        <Link className="text-link" to="/" onClick={clearResult}><ArrowLeft size={15} />{copy.backToTop}</Link>
       </div>
 
       <section className="result-summary">
         <div className="result-topic">
-          <span>{practiceResult.mode === 'word' ? 'WORD' : 'TOPIC'} · {practiceResult.categoryName}</span>
+          <span>TOPIC · {practiceResult.categoryName}</span>
           <h2>{practiceResult.topic}</h2>
         </div>
         <div className="result-time"><span>TIME</span><strong>{formatTime(practiceResult.durationSeconds)}</strong></div>

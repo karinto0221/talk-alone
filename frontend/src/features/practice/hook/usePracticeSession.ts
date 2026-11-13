@@ -3,10 +3,10 @@ import type { PracticeOptions, PracticeState } from '../type';
 import { SESSION_SECONDS } from '../util/time';
 import { useAudioRecorder, type RecordingResult } from './useAudioRecorder';
 import type { PracticeResult } from '../../../domain/practice';
-import { createRandomHint, createRandomTopic } from '../service/practice-content.service';
+import { createRandomTopic } from '../service/practice-content.service';
 import { useLanguage } from '../../../i18n/LanguageContext';
 
-const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0, hint: '' };
+const initialState: PracticeState = { phase: 'idle', topic: null, elapsedSeconds: 0 };
 
 export function usePracticeSession(onComplete: (result: PracticeResult, recording: RecordingResult | null) => void) {
   const { copy } = useLanguage();
@@ -42,7 +42,6 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
       onComplete({
         topic: state.topic.text,
         categoryName: state.topic.categoryName,
-        mode: state.topic.mode,
         language: state.topic.language,
         durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),
         completedAt: new Date().toISOString(),
@@ -53,14 +52,6 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
       setState((current) => ({ ...current, phase: 'speaking' }));
     }
   }, [copy.recordingStopError, onComplete, recorder.stop, state]);
-
-  const requestHint = useCallback(() => {
-    if (!state.topic || state.phase !== 'speaking') return;
-    setState((current) => ({
-      ...current,
-      hint: createRandomHint(state.topic!.text, state.topic!.categoryId, state.topic!.language, current.hint),
-    }));
-  }, [state.topic, state.phase]);
 
   useEffect(() => {
     if (state.phase !== 'speaking') return;
@@ -77,11 +68,9 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
     remainingSeconds: SESSION_SECONDS - state.elapsedSeconds,
     progress: Math.min(100, (state.elapsedSeconds / SESSION_SECONDS) * 100),
     error,
-    hintLoading: false,
     recordingStatus: recorder.status,
     recordingNotice,
     start,
     stop,
-    requestHint,
   };
 }
