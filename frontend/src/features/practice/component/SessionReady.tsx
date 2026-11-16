@@ -1,4 +1,4 @@
-import { ArrowRight, Clock3, FileText, Languages, MessageCircle, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, Languages, MessageCircle, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -6,6 +6,7 @@ import type { PracticeMode, ReflexTrainingType } from '../type';
 import { formatTime } from '../util/time';
 import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../../streamer/config/comment-frequency';
 import { useLanguage, type AppLanguage } from '../../../i18n/LanguageContext';
+import { PracticeModeSelect } from './PracticeModeSelect';
 
 type Props = {
   loading: boolean;
@@ -71,23 +72,7 @@ export function SessionReady({
           </label>
           <fieldset className="setting-group">
             <legend>{copy.practiceMode}</legend>
-            <div className="mode-options">
-              <label className={mode === 'speech' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'speech'} onChange={() => onModeChange('speech')} />
-                <FileText size={16} />
-                <span><b>{copy.speechMode}</b><small>{copy.speechModeSub}</small></span>
-              </label>
-              <label className={mode === 'reflex' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'reflex'} onChange={() => onModeChange('reflex')} />
-                <Zap size={16} />
-                <span><b>{copy.reflex}</b><small>{copy.reflexSub}</small></span>
-              </label>
-              <label className={mode === 'streamer' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'streamer'} onChange={() => onModeChange('streamer')} />
-                <Radio size={16} />
-                <span><b>{copy.streamer}</b><small>{copy.streamerSub}</small></span>
-              </label>
-            </div>
+            <PracticeModeSelect value={mode} onChange={onModeChange} />
           </fieldset>
           {mode === 'streamer' ? (
             <>
@@ -99,54 +84,40 @@ export function SessionReady({
                   <b>{copy.minutes}</b>
                 </div>
               </label>
-              <fieldset className="setting-group">
-                <legend>{copy.commentFrequency}</legend>
-                <div className="frequency-options">
-                  {Object.entries(STREAMER_COMMENT_FREQUENCIES).map(([frequencyId, option]) => {
-                    const frequency = frequencyId as StreamerCommentFrequency;
-                    return (
-                      <label className={streamerCommentFrequency === frequency ? 'frequency-option selected' : 'frequency-option'} key={frequency}>
-                        <input
-                          type="radio"
-                          name="streamer-comment-frequency"
-                          checked={streamerCommentFrequency === frequency}
-                          onChange={() => onStreamerCommentFrequencyChange(frequency)}
-                        />
-                        <span><b>{copy.frequency[frequency]}</b><small>{option.minSeconds}–{option.maxSeconds} {copy.seconds}</small></span>
-                      </label>
-                    );
-                  })}
+              <label className="setting-group">
+                <span>{copy.commentFrequency}</span>
+                <div className="select-wrap">
+                  <Radio size={15} />
+                  <select value={streamerCommentFrequency} onChange={(event) => onStreamerCommentFrequencyChange(event.target.value as StreamerCommentFrequency)}>
+                    {Object.entries(STREAMER_COMMENT_FREQUENCIES).map(([frequencyId, option]) => {
+                      const frequency = frequencyId as StreamerCommentFrequency;
+                      return <option value={frequency} key={frequency}>{copy.frequency[frequency]}（{option.minSeconds}–{option.maxSeconds} {copy.seconds}）</option>;
+                    })}
+                  </select>
                 </div>
-              </fieldset>
+              </label>
             </>
           ) : mode === 'reflex' ? (
             <>
-              <fieldset className="setting-group">
-                <legend>{copy.training}</legend>
-                <div className="reflex-type-options">
-                  <label className={reflexTrainingType === 'comment' ? 'reflex-type-option selected' : 'reflex-type-option'}>
-                    <input type="radio" name="reflex-type" checked={reflexTrainingType === 'comment'} onChange={() => onReflexTrainingTypeChange('comment')} />
-                    <MessageCircle size={16} />
-                    <span><b>{copy.commentReply}</b><small>{copy.commentReplySub}</small></span>
-                  </label>
-                  <label className={reflexTrainingType === 'analogy' ? 'reflex-type-option selected' : 'reflex-type-option'}>
-                    <input type="radio" name="reflex-type" checked={reflexTrainingType === 'analogy'} onChange={() => onReflexTrainingTypeChange('analogy')} />
-                    <Sparkles size={16} />
-                    <span><b>{copy.analogy}</b><small>{copy.analogySub}</small></span>
-                  </label>
+              <label className="setting-group">
+                <span>{copy.training}</span>
+                <div className="select-wrap">
+                  {reflexTrainingType === 'comment' ? <MessageCircle size={15} /> : <Sparkles size={15} />}
+                  <select value={reflexTrainingType} onChange={(event) => onReflexTrainingTypeChange(event.target.value as ReflexTrainingType)}>
+                    <option value="comment">{copy.commentReply} — {copy.commentReplySub}</option>
+                    <option value="analogy">{copy.analogy} — {copy.analogySub}</option>
+                  </select>
                 </div>
-              </fieldset>
-              <fieldset className="setting-group">
-                <legend>{copy.roundCount}</legend>
-                <div className="reflex-count-options">
-                  {[5, 10, 20].map((count) => (
-                    <label className={reflexRoundCount === count ? 'reflex-count-option selected' : 'reflex-count-option'} key={count}>
-                      <input type="radio" name="reflex-round-count" checked={reflexRoundCount === count} onChange={() => onReflexRoundCountChange(count)} />
-                      <b>{copy.rounds(count)}</b>
-                    </label>
-                  ))}
+              </label>
+              <label className="setting-group">
+                <span>{copy.roundCount}</span>
+                <div className="select-wrap">
+                  <Zap size={15} />
+                  <select value={reflexRoundCount} onChange={(event) => onReflexRoundCountChange(Number(event.target.value))}>
+                    {[5, 10, 20].map((count) => <option value={count} key={count}>{copy.rounds(count)}</option>)}
+                  </select>
                 </div>
-              </fieldset>
+              </label>
             </>
           ) : (
             <label className="setting-group category-setting">
