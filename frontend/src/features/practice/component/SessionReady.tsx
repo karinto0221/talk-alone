@@ -104,8 +104,8 @@ export function SessionReady({
                 <div className="select-wrap">
                   {reflexTrainingType === 'comment' ? <MessageCircle size={15} /> : <Sparkles size={15} />}
                   <select value={reflexTrainingType} onChange={(event) => onReflexTrainingTypeChange(event.target.value as ReflexTrainingType)}>
-                    <option value="comment">{copy.commentReply} — {copy.commentReplySub}</option>
-                    <option value="analogy">{copy.analogy} — {copy.analogySub}</option>
+                    <option value="comment">{copy.commentReply}</option>
+                    <option value="analogy">{copy.analogy}</option>
                   </select>
                 </div>
               </label>
