@@ -6,20 +6,22 @@ import type { ReflexTrainingType } from '../../practice/type';
 import { useReflexSession } from '../hook/useReflexSession';
 import type { ContentLanguage } from '../../../domain/practice';
 import { useLanguage } from '../../../i18n/LanguageContext';
+import { ReflexResult } from './ReflexResult';
 
 type Props = {
   trainingType: ReflexTrainingType;
+  targetRounds: number;
   language: ContentLanguage;
   onExit: () => void;
 };
 
-export function ReflexSession({ trainingType, language, onExit }: Props) {
+export function ReflexSession({ trainingType, targetRounds, language, onExit }: Props) {
   const { copy } = useLanguage();
-  const session = useReflexSession(trainingType, language);
+  const session = useReflexSession(trainingType, language, targetRounds);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter' || event.repeat || session.loading) return;
+      if (event.key !== 'Enter' || event.repeat || session.loading || session.phase !== 'running') return;
       const target = event.target as HTMLElement | null;
       if (target?.closest('button, input, select, textarea, a')) return;
       event.preventDefault();
@@ -27,7 +29,11 @@ export function ReflexSession({ trainingType, language, onExit }: Props) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [session.loading, session.next]);
+  }, [session.loading, session.next, session.phase]);
+
+  if (session.phase === 'complete') {
+    return <ReflexResult trainingType={trainingType} attempts={session.attempts} onRetry={session.restart} onExit={onExit} />;
+  }
 
   return (
     <section className="reflex-session">
@@ -38,7 +44,7 @@ export function ReflexSession({ trainingType, language, onExit }: Props) {
           <span><Zap size={14} fill="currentColor" /> QUICK RESPONSE</span>
           <h1>{trainingType === 'comment' ? copy.replyTitle : copy.analogyTitle}</h1>
         </div>
-        <div className="reflex-round"><span>ROUND</span><strong>{String(session.round).padStart(2, '0')}</strong></div>
+        <div className="reflex-round"><span>ROUND</span><strong>{String(session.round).padStart(2, '0')} / {String(session.targetRounds).padStart(2, '0')}</strong></div>
       </header>
 
       <div className={`reflex-prompt-card ${trainingType}`} aria-live="polite" aria-busy={session.loading}>
@@ -69,7 +75,7 @@ export function ReflexSession({ trainingType, language, onExit }: Props) {
           disabled={session.loading}
           icon={session.loading ? <LoadingSpinner /> : trainingType === 'comment' ? <ArrowRight size={17} /> : <Shuffle size={17} />}
         >
-          {session.loading ? copy.preparing : 'NEXT'}
+          {session.loading ? copy.preparing : session.round === session.targetRounds ? copy.showResult : 'NEXT'}
         </Button>
       </div>
       <p className="reflex-key-hint">ENTER KEY / NEXT</p>

@@ -13,11 +13,13 @@ type Props = {
   categoryId: string;
   mode: PracticeMode;
   reflexTrainingType: ReflexTrainingType;
+  reflexRoundCount: number;
   durationMinutes: number;
   streamerCommentFrequency: StreamerCommentFrequency;
   onCategoryChange: (categoryId: string) => void;
   onModeChange: (mode: PracticeMode) => void;
   onReflexTrainingTypeChange: (trainingType: ReflexTrainingType) => void;
+  onReflexRoundCountChange: (roundCount: number) => void;
   onDurationChange: (durationMinutes: number) => void;
   onStreamerCommentFrequencyChange: (frequency: StreamerCommentFrequency) => void;
   onStart: () => void;
@@ -29,11 +31,13 @@ export function SessionReady({
   categoryId,
   mode,
   reflexTrainingType,
+  reflexRoundCount,
   durationMinutes,
   streamerCommentFrequency,
   onCategoryChange,
   onModeChange,
   onReflexTrainingTypeChange,
+  onReflexRoundCountChange,
   onDurationChange,
   onStreamerCommentFrequencyChange,
   onStart,
@@ -73,15 +77,15 @@ export function SessionReady({
                 <FileText size={16} />
                 <span><b>{copy.speechMode}</b><small>{copy.speechModeSub}</small></span>
               </label>
-              <label className={mode === 'streamer' ? 'mode-option selected' : 'mode-option'}>
-                <input type="radio" name="topic-mode" checked={mode === 'streamer'} onChange={() => onModeChange('streamer')} />
-                <Radio size={16} />
-                <span><b>{copy.streamer}</b><small>{copy.streamerSub}</small></span>
-              </label>
               <label className={mode === 'reflex' ? 'mode-option selected' : 'mode-option'}>
                 <input type="radio" name="topic-mode" checked={mode === 'reflex'} onChange={() => onModeChange('reflex')} />
                 <Zap size={16} />
                 <span><b>{copy.reflex}</b><small>{copy.reflexSub}</small></span>
+              </label>
+              <label className={mode === 'streamer' ? 'mode-option selected' : 'mode-option'}>
+                <input type="radio" name="topic-mode" checked={mode === 'streamer'} onChange={() => onModeChange('streamer')} />
+                <Radio size={16} />
+                <span><b>{copy.streamer}</b><small>{copy.streamerSub}</small></span>
               </label>
             </div>
           </fieldset>
@@ -116,21 +120,34 @@ export function SessionReady({
               </fieldset>
             </>
           ) : mode === 'reflex' ? (
-            <fieldset className="setting-group">
-              <legend>{copy.training}</legend>
-              <div className="reflex-type-options">
-                <label className={reflexTrainingType === 'comment' ? 'reflex-type-option selected' : 'reflex-type-option'}>
-                  <input type="radio" name="reflex-type" checked={reflexTrainingType === 'comment'} onChange={() => onReflexTrainingTypeChange('comment')} />
-                  <MessageCircle size={16} />
-                  <span><b>{copy.commentReply}</b><small>{copy.commentReplySub}</small></span>
-                </label>
-                <label className={reflexTrainingType === 'analogy' ? 'reflex-type-option selected' : 'reflex-type-option'}>
-                  <input type="radio" name="reflex-type" checked={reflexTrainingType === 'analogy'} onChange={() => onReflexTrainingTypeChange('analogy')} />
-                  <Sparkles size={16} />
-                  <span><b>{copy.analogy}</b><small>{copy.analogySub}</small></span>
-                </label>
-              </div>
-            </fieldset>
+            <>
+              <fieldset className="setting-group">
+                <legend>{copy.training}</legend>
+                <div className="reflex-type-options">
+                  <label className={reflexTrainingType === 'comment' ? 'reflex-type-option selected' : 'reflex-type-option'}>
+                    <input type="radio" name="reflex-type" checked={reflexTrainingType === 'comment'} onChange={() => onReflexTrainingTypeChange('comment')} />
+                    <MessageCircle size={16} />
+                    <span><b>{copy.commentReply}</b><small>{copy.commentReplySub}</small></span>
+                  </label>
+                  <label className={reflexTrainingType === 'analogy' ? 'reflex-type-option selected' : 'reflex-type-option'}>
+                    <input type="radio" name="reflex-type" checked={reflexTrainingType === 'analogy'} onChange={() => onReflexTrainingTypeChange('analogy')} />
+                    <Sparkles size={16} />
+                    <span><b>{copy.analogy}</b><small>{copy.analogySub}</small></span>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset className="setting-group">
+                <legend>{copy.roundCount}</legend>
+                <div className="reflex-count-options">
+                  {[5, 10, 20].map((count) => (
+                    <label className={reflexRoundCount === count ? 'reflex-count-option selected' : 'reflex-count-option'} key={count}>
+                      <input type="radio" name="reflex-round-count" checked={reflexRoundCount === count} onChange={() => onReflexRoundCountChange(count)} />
+                      <b>{copy.rounds(count)}</b>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </>
           ) : (
             <label className="setting-group category-setting">
               <span>{copy.category}</span>
@@ -154,7 +171,7 @@ export function SessionReady({
       </div>
       <div className="timer-preview" aria-hidden="true">
         <div className="preview-meta">{mode === 'reflex' ? <Zap size={16} /> : <Clock3 size={16} />} {mode === 'reflex' ? 'FREE PRACTICE' : 'SESSION TIMER'}</div>
-        <strong>{mode === 'reflex' ? 'FREE' : mode === 'streamer' ? formatTime(durationMinutes * 60) : '03:00'}</strong>
+        <strong>{mode === 'reflex' ? String(reflexRoundCount).padStart(2, '0') : mode === 'streamer' ? formatTime(durationMinutes * 60) : '03:00'}</strong>
         <div className="preview-track"><span /></div>
         <div className="preview-grid">
           <span>{mode === 'streamer' || mode === 'reflex' ? 'PROMPT' : 'TOPIC'}</span>
@@ -162,7 +179,7 @@ export function SessionReady({
           <span>MODE</span>
           <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : 'SPEECH'}</span>
           <span>LIMIT</span>
-          <span>{mode === 'reflex' ? 'NONE' : mode === 'streamer' ? `${durationMinutes} MIN` : '3 MIN'}</span>
+          <span>{mode === 'reflex' ? `${reflexRoundCount} ROUNDS` : mode === 'streamer' ? `${durationMinutes} MIN` : '3 MIN'}</span>
         </div>
       </div>
     </section>

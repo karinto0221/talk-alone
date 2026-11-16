@@ -12,8 +12,15 @@ import type { StreamerCommentFrequency } from '../streamer/config/comment-freque
 import { ReflexSession } from '../reflex';
 import { listCategories } from './service/practice-content.service';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { requestVoiceActivityInput, type VoiceActivityInput } from '../streamer/hook/useVoiceActivityAnalyzer';
 
 const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
+type StreamerRun = { id: string; microphoneInput: Promise<VoiceActivityInput | null> };
+
+const createStreamerRun = (): StreamerRun => ({
+  id: `${Date.now()}-${Math.random()}`,
+  microphoneInput: requestVoiceActivityInput(),
+});
 
 export function PracticeFeature() {
   const { practiceLanguage } = useLanguage();
@@ -28,9 +35,10 @@ export function PracticeFeature() {
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('speech');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
+  const [reflexRoundCount, setReflexRoundCount] = useState(10);
   const [durationMinutes, setDurationMinutes] = useState(10);
   const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');
-  const [streamerActive, setStreamerActive] = useState(false);
+  const [streamerRun, setStreamerRun] = useState<StreamerRun | null>(null);
   const [reflexActive, setReflexActive] = useState(false);
   const { state } = session;
 
@@ -40,7 +48,7 @@ export function PracticeFeature() {
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (mode === 'streamer') {
       setDurationMinutes((current) => clampDuration(current));
-      setStreamerActive(true);
+      setStreamerRun(createStreamerRun());
       return;
     }
     if (mode === 'reflex') {
@@ -50,12 +58,12 @@ export function PracticeFeature() {
     void session.start({ categoryId: categoryId || undefined, language: practiceLanguage });
   };
 
-  if (streamerActive) {
-    return <main className="page practice-page streamer-page"><StreamerSession durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={practiceLanguage} onExit={() => { setStreamerActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+  if (streamerRun) {
+    return <main className="page practice-page streamer-page"><StreamerSession key={streamerRun.id} durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={practiceLanguage} microphoneInput={streamerRun.microphoneInput} onRetry={() => setStreamerRun(createStreamerRun())} onExit={() => { setStreamerRun(null); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   if (reflexActive) {
-    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} language={practiceLanguage} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} targetRounds={reflexRoundCount} language={practiceLanguage} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   return (
@@ -69,11 +77,13 @@ export function PracticeFeature() {
           categoryId={categoryId}
           mode={mode}
           reflexTrainingType={reflexTrainingType}
+          reflexRoundCount={reflexRoundCount}
           durationMinutes={durationMinutes}
           streamerCommentFrequency={streamerCommentFrequency}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
           onReflexTrainingTypeChange={setReflexTrainingType}
+          onReflexRoundCountChange={setReflexRoundCount}
           onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
           onStreamerCommentFrequencyChange={setStreamerCommentFrequency}
           onStart={start}

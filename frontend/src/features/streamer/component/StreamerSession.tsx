@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, MessageCircle, Radio, Square, UserRound } from 'lucide-react';
+import { MessageCircle, Mic2, Radio, Square, UserRound } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { formatTime } from '../../practice/util/time';
@@ -6,38 +6,45 @@ import type { StreamerCommentFrequency } from '../config/comment-frequency';
 import { useStreamerSession } from '../hook/useStreamerSession';
 import type { ContentLanguage } from '../../../domain/practice';
 import { useLanguage } from '../../../i18n/LanguageContext';
+import { StreamerResult } from './StreamerResult';
+import type { VoiceActivityInput } from '../hook/useVoiceActivityAnalyzer';
 
-type Props = { durationMinutes: number; commentFrequency: StreamerCommentFrequency; language: ContentLanguage; onExit: () => void };
+type Props = {
+  durationMinutes: number;
+  commentFrequency: StreamerCommentFrequency;
+  language: ContentLanguage;
+  microphoneInput: Promise<VoiceActivityInput | null>;
+  onRetry: () => void;
+  onExit: () => void;
+};
 
-export function StreamerSession({ durationMinutes, commentFrequency, language, onExit }: Props) {
+export function StreamerSession({ durationMinutes, commentFrequency, language, microphoneInput, onRetry, onExit }: Props) {
   const { copy } = useLanguage();
-  const session = useStreamerSession(durationMinutes, commentFrequency, language);
+  const session = useStreamerSession(durationMinutes, commentFrequency, language, microphoneInput);
   const feedEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     feedEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [session.comments.length]);
 
-  if (session.phase === 'complete') {
-    return (
-      <section className="streamer-complete">
-        <CheckCircle2 size={32} />
-        <p className="section-label">SESSION COMPLETE</p>
-        <h1>{copy.sessionComplete(durationMinutes)}</h1>
-        <div className="streamer-complete-stats">
-          <div><span>TIME</span><strong>{formatTime(durationMinutes * 60)}</strong></div>
-          <div><span>COMMENTS</span><strong>{session.comments.length}</strong></div>
-        </div>
-        <Button onClick={onExit} icon={<ArrowLeft size={17} />}>{copy.backToSettings}</Button>
-      </section>
-    );
-  }
+  if (session.phase === 'complete' && session.result) return <StreamerResult result={session.result} onRetry={onRetry} onExit={onExit} />;
+
+  const voiceStatusLabel = session.voiceStatus === 'measuring'
+    ? copy.voiceMeasuring
+    : session.voiceStatus === 'calibrating'
+      ? copy.voiceCalibrating
+      : session.voiceStatus === 'preparing'
+        ? copy.voicePreparing
+        : copy.voiceUnavailable;
 
   return (
     <section className="streamer-workspace">
       <div className="streamer-session-head">
         <div><span className="streamer-live-dot" /><b>LIVE PRACTICE</b></div>
-        <span>{session.comments.length} COMMENTS</span>
+        <div className={`streamer-session-meta ${session.voiceStatus === 'unavailable' ? 'voice-off' : ''}`}>
+          <span><Mic2 size={12} />{voiceStatusLabel}</span>
+          <span>{session.comments.length} COMMENTS</span>
+        </div>
       </div>
 
       <div className="streamer-layout">
@@ -64,9 +71,9 @@ export function StreamerSession({ durationMinutes, commentFrequency, language, o
           <dl>
             <div><dt>SESSION</dt><dd>{durationMinutes} MIN</dd></div>
             <div><dt>FREQUENCY</dt><dd>{copy.frequency[commentFrequency]}</dd></div>
-            <div><dt>RECORDING</dt><dd>OFF</dd></div>
+            <div><dt>VOICE</dt><dd>{voiceStatusLabel}</dd></div>
           </dl>
-          <Button variant="ghost" onClick={onExit} icon={<Square size={14} fill="currentColor" />}>{copy.stop}</Button>
+          <Button variant="ghost" onClick={() => session.finish(false)} icon={<Square size={14} fill="currentColor" />}>{copy.stop}</Button>
         </aside>
       </div>
     </section>
