@@ -1,4 +1,4 @@
-import { ArrowRight, Clock3, Languages, MessageCircle, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, Languages, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -102,10 +102,10 @@ export function SessionReady({
               <label className="setting-group">
                 <span>{copy.training}</span>
                 <div className="select-wrap">
-                  {reflexTrainingType === 'comment' ? <MessageCircle size={15} /> : <Sparkles size={15} />}
+                  {reflexTrainingType === 'association' ? <Sparkles size={15} /> : <Shuffle size={15} />}
                   <select value={reflexTrainingType} onChange={(event) => onReflexTrainingTypeChange(event.target.value as ReflexTrainingType)}>
-                    <option value="comment">{copy.commentReply}</option>
-                    <option value="analogy">{copy.analogy}</option>
+                    <option value="association">{copy.association}</option>
+                    <option value="combination">{copy.combinationComeback}</option>
                   </select>
                 </div>
               </label>

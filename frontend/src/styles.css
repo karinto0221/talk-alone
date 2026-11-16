@@ -229,9 +229,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--blue-bright); o
 .reflex-round strong { display: block; margin-top: 4px; color: var(--muted); font: 600 20px ui-monospace, SFMono-Regular, Menlo, monospace; }
 .reflex-prompt-card { position: relative; min-height: 360px; padding: 30px 38px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--surface); box-shadow: 0 28px 70px rgba(0,0,0,.26); }
 .reflex-prompt-card::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--blue); }
-.reflex-prompt-card.analogy::before { background: var(--cyan); }
+.reflex-prompt-card.association::before, .reflex-prompt-card.combination::before { background: var(--cyan); }
 .reflex-prompt-meta { display: flex; align-items: center; gap: 9px; color: var(--blue-bright); }
-.reflex-prompt-card.analogy .reflex-prompt-meta { color: var(--cyan); }
+.reflex-prompt-card.association .reflex-prompt-meta, .reflex-prompt-card.combination .reflex-prompt-meta { color: var(--cyan); }
 .reflex-prompt-meta span { font: 700 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .13em; }
 .reflex-prompt-content { display: grid; place-items: center; padding: 34px 0; text-align: center; }
 .reflex-prompt-content > p { max-width: 650px; margin: 0; color: #e1e9f5; font-size: clamp(27px, 4.4vw, 46px); font-weight: 700; letter-spacing: -.04em; line-height: 1.45; overflow-wrap: anywhere; }

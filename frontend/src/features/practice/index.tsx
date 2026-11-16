@@ -34,7 +34,7 @@ export function PracticeFeature() {
   const categories = listCategories(practiceLanguage);
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('speech');
-  const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('comment');
+  const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('association');
   const [reflexRoundCount, setReflexRoundCount] = useState(10);
   const [durationMinutes, setDurationMinutes] = useState(10);
   const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');

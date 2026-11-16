@@ -24,7 +24,7 @@ export function ReflexResult({ trainingType, attempts, onRetry, onExit }: Props)
       <div className="result-status-icon complete"><Zap size={29} fill="currentColor" /></div>
       <p className="section-label">QUICK RESPONSE RESULT</p>
       <h1>{copy.reflexResult}</h1>
-      <p className="result-mode-name">{trainingType === 'comment' ? copy.replyTitle : copy.analogyTitle} · {copy.rounds(attempts.length)}</p>
+      <p className="result-mode-name">{trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle} · {copy.rounds(attempts.length)}</p>
 
       <div className="practice-result-grid reflex-stats">
         <div className="featured"><span>{copy.averageResponse}</span><strong>{responseTime(summary.averageSeconds)}</strong></div>

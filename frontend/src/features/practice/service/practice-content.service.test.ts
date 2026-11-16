@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ANALOGY_PROMPT_VARIATION_COUNT } from '../../reflex/data/analogy-prompt.data';
+import { ANALOGY_INTENSITY_ADJECTIVE_COUNT, ANALOGY_PROMPT_SOURCE_COUNTS, ANALOGY_PROMPT_VARIATION_COUNT } from '../../reflex/data/analogy-prompt.data';
+import { ENGLISH_ANALOGY_PROMPT_SOURCE_COUNTS, ENGLISH_ANALOGY_PROMPT_VARIATION_COUNT } from '../../reflex/data/english-analogy-prompt.data';
 import { STREAMER_COMMENTS } from '../../streamer/data/streamer-comment.data';
 import { STREAMER_USERNAMES } from '../../streamer/data/streamer-user.data';
 import { createRandomComment } from '../../streamer/service/streamer-content.service';
@@ -81,6 +82,25 @@ describe('offline practice content', () => {
     expect(STREAMER_USERNAMES).toHaveLength(5_000);
     expect(new Set(STREAMER_USERNAMES).size).toBe(5_000);
     expect(STREAMER_USERNAMES.every((username) => username.length <= 20)).toBe(true);
-    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(2_380);
+    expect(ANALOGY_INTENSITY_ADJECTIVE_COUNT).toBe(100);
+    expect(ANALOGY_PROMPT_SOURCE_COUNTS).toEqual({
+      actions: 40,
+      objectModifiers: 40,
+      descriptionAdjectives: 50,
+      descriptionNouns: 154,
+      descriptionModifiers: 40,
+    });
+    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(387_580);
+    expect(ENGLISH_ANALOGY_PROMPT_SOURCE_COUNTS).toEqual({
+      associationModifiers: 30,
+      associationAdjectives: 100,
+      objects: 42,
+      actions: 40,
+      objectModifiers: 40,
+      descriptionAdjectives: 50,
+      descriptionNouns: 154,
+      descriptionModifiers: 40,
+    });
+    expect(ENGLISH_ANALOGY_PROMPT_VARIATION_COUNT).toBe(387_580);
   });
 });
