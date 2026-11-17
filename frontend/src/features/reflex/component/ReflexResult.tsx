@@ -4,18 +4,22 @@ import { useLanguage } from '../../../i18n/LanguageContext';
 import type { ReflexTrainingType } from '../../practice/type';
 import { formatTime } from '../../practice/util/time';
 import type { ReflexAttempt } from '../hook/useReflexSession';
+import type { ChallengeVideoResult as ChallengeVideoRecording } from '../hook/useChallengeVideoRecorder';
 import { summarizeReflexAttempts } from '../util/reflex-result';
+import { ChallengeVideoResult } from './ChallengeVideoResult';
 
 type Props = {
   trainingType: ReflexTrainingType;
   attempts: readonly ReflexAttempt[];
+  challenge?: boolean;
+  recording?: ChallengeVideoRecording | null;
   onRetry: () => void;
   onExit: () => void;
 };
 
 const responseTime = (seconds: number) => `${seconds.toFixed(1)}s`;
 
-export function ReflexResult({ trainingType, attempts, onRetry, onExit }: Props) {
+export function ReflexResult({ trainingType, attempts, challenge = false, recording = null, onRetry, onExit }: Props) {
   const { copy } = useLanguage();
   const summary = summarizeReflexAttempts(attempts);
 
@@ -24,7 +28,7 @@ export function ReflexResult({ trainingType, attempts, onRetry, onExit }: Props)
       <div className="result-status-icon complete"><Zap size={29} fill="currentColor" /></div>
       <p className="section-label">QUICK RESPONSE RESULT</p>
       <h1>{copy.reflexResult}</h1>
-      <p className="result-mode-name">{trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle} · {copy.rounds(attempts.length)}</p>
+      <p className="result-mode-name">{trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle} · {challenge ? copy.reflexChallengeTitle : copy.rounds(attempts.length)}</p>
 
       <div className="practice-result-grid reflex-stats">
         <div className="featured"><span>{copy.averageResponse}</span><strong>{responseTime(summary.averageSeconds)}</strong></div>
@@ -40,11 +44,13 @@ export function ReflexResult({ trainingType, attempts, onRetry, onExit }: Props)
             <li key={`${attempt.prompt}-${index}`}>
               <span>{String(index + 1).padStart(2, '0')}</span>
               <p>{attempt.prompt}</p>
-              <strong>{responseTime(attempt.responseSeconds)}</strong>
+              <strong className={attempt.timedOut ? 'timed-out' : ''}>{attempt.timedOut ? copy.timeUp : responseTime(attempt.responseSeconds)}</strong>
             </li>
           ))}
         </ol>
       </section>
+
+      {challenge && <ChallengeVideoResult recording={recording} />}
 
       <div className="practice-result-actions">
         <Button variant="secondary" onClick={onRetry} icon={<RotateCcw size={16} />}>{copy.retry}</Button>

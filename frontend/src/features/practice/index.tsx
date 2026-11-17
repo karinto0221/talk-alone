@@ -6,7 +6,7 @@ import { usePracticeSession } from './hook/usePracticeSession';
 import { useTemporaryResult } from '../result/context/TemporaryResultContext';
 import type { PracticeResult } from '../../domain/practice';
 import type { RecordingResult } from './hook/useAudioRecorder';
-import type { PracticeMode, ReflexTrainingType } from './type';
+import type { PracticeMode, ReflexRoundSetting, ReflexTrainingType } from './type';
 import { StreamerSession } from '../streamer';
 import type { StreamerCommentFrequency } from '../streamer/config/comment-frequency';
 import { ReflexSession } from '../reflex';
@@ -35,11 +35,12 @@ export function PracticeFeature() {
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('speech');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('association');
-  const [reflexRoundCount, setReflexRoundCount] = useState(10);
+  const [reflexRoundSetting, setReflexRoundSetting] = useState<ReflexRoundSetting>(10);
   const [durationMinutes, setDurationMinutes] = useState(10);
   const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');
   const [streamerRun, setStreamerRun] = useState<StreamerRun | null>(null);
   const [reflexActive, setReflexActive] = useState(false);
+  const [reflexRunId, setReflexRunId] = useState('');
   const { state } = session;
 
   useEffect(() => clearResult(), [clearResult]);
@@ -52,6 +53,7 @@ export function PracticeFeature() {
       return;
     }
     if (mode === 'reflex') {
+      setReflexRunId(`${Date.now()}-${Math.random()}`);
       setReflexActive(true);
       return;
     }
@@ -63,7 +65,7 @@ export function PracticeFeature() {
   }
 
   if (reflexActive) {
-    return <main className="page practice-page reflex-page"><ReflexSession trainingType={reflexTrainingType} targetRounds={reflexRoundCount} language={practiceLanguage} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+    return <main className="page practice-page reflex-page"><ReflexSession key={reflexRunId} trainingType={reflexTrainingType} roundSetting={reflexRoundSetting} language={practiceLanguage} onRetryChallenge={() => setReflexRunId(`${Date.now()}-${Math.random()}`)} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   return (
@@ -77,13 +79,13 @@ export function PracticeFeature() {
           categoryId={categoryId}
           mode={mode}
           reflexTrainingType={reflexTrainingType}
-          reflexRoundCount={reflexRoundCount}
+          reflexRoundSetting={reflexRoundSetting}
           durationMinutes={durationMinutes}
           streamerCommentFrequency={streamerCommentFrequency}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
           onReflexTrainingTypeChange={setReflexTrainingType}
-          onReflexRoundCountChange={setReflexRoundCount}
+          onReflexRoundSettingChange={setReflexRoundSetting}
           onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
           onStreamerCommentFrequencyChange={setStreamerCommentFrequency}
           onStart={start}

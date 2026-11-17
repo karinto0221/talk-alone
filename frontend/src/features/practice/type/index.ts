@@ -5,3 +5,4 @@ export type PracticeState = { phase: PracticePhase; topic: Topic | null; elapsed
 export type PracticeOptions = { categoryId?: string; language: ContentLanguage };
 export type PracticeMode = 'speech' | 'streamer' | 'reflex';
 export type ReflexTrainingType = 'association' | 'combination';
+export type ReflexRoundSetting = 5 | 10 | 'challenge';
