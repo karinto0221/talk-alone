@@ -23,7 +23,7 @@ const createStreamerRun = (): StreamerRun => ({
 });
 
 export function PracticeFeature() {
-  const { practiceLanguage } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const { clearResult, setResult } = useTemporaryResult();
   const complete = useCallback((practiceResult: PracticeResult, recording: RecordingResult | null) => {
@@ -31,7 +31,7 @@ export function PracticeFeature() {
     navigate('/result');
   }, [navigate, setResult]);
   const session = usePracticeSession(complete);
-  const categories = listCategories(practiceLanguage);
+  const categories = listCategories(language);
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('speech');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('association');
@@ -57,15 +57,15 @@ export function PracticeFeature() {
       setReflexActive(true);
       return;
     }
-    void session.start({ categoryId: categoryId || undefined, language: practiceLanguage });
+    void session.start({ categoryId: categoryId || undefined, language });
   };
 
   if (streamerRun) {
-    return <main className="page practice-page streamer-page"><StreamerSession key={streamerRun.id} durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={practiceLanguage} microphoneInput={streamerRun.microphoneInput} onRetry={() => setStreamerRun(createStreamerRun())} onExit={() => { setStreamerRun(null); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+    return <main className="page practice-page streamer-page"><StreamerSession key={streamerRun.id} durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={language} microphoneInput={streamerRun.microphoneInput} onRetry={() => setStreamerRun(createStreamerRun())} onExit={() => { setStreamerRun(null); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   if (reflexActive) {
-    return <main className="page practice-page reflex-page"><ReflexSession key={reflexRunId} trainingType={reflexTrainingType} roundSetting={reflexRoundSetting} language={practiceLanguage} onRetryChallenge={() => setReflexRunId(`${Date.now()}-${Math.random()}`)} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+    return <main className="page practice-page reflex-page"><ReflexSession key={reflexRunId} trainingType={reflexTrainingType} roundSetting={reflexRoundSetting} language={language} onRetryChallenge={() => setReflexRunId(`${Date.now()}-${Math.random()}`)} onExit={() => { setReflexActive(false); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   return (

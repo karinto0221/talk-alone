@@ -2,9 +2,12 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type AppLanguage = 'ja' | 'en';
 
+// v1 is Japanese-only. Add 'en' to this list to expose the existing English UI and content.
+export const ENABLED_APP_LANGUAGES: readonly AppLanguage[] = ['ja'];
+
 const UI_COPY = {
   ja: {
-    home: 'talk-alone ホーム', interfaceLanguage: '画面言語', practiceLanguage: '練習言語', japanese: '日本語', english: 'English',
+    home: 'talk-alone ホーム', languageLabel: '言語', japanese: '日本語', english: 'English',
     practiceMode: '練習モード', speechMode: 'スピーチ', speechModeSub: 'お題をランダム', streamer: '配信者', streamerSub: 'コメント対応', reflex: '瞬発力', reflexSub: 'すぐに返す',
     speechDescription: '登録されたお題からランダムに1つ表示されます。そのお題について3分間話します。', streamerDescription: 'ランダムに届くコメントを拾い、設定した時間まで配信者として話し続けます。', reflexDescription: '表示された条件から連想したものや、変な組み合わせへのツッコミをすぐに声に出します。',
     duration: '練習時間', minutes: '分', seconds: '秒', commentFrequency: 'コメント頻度', training: 'トレーニング', association: '例え連想', combinationComeback: '組み合わせツッコミ', category: 'ジャンル', random: 'ランダム', start: '開始', preparingRecording: '録音を準備中',
@@ -23,7 +26,7 @@ const UI_COPY = {
     frequency: { high: '高頻度', normal: '通常', low: '低頻度' },
   },
   en: {
-    home: 'talk-alone home', interfaceLanguage: 'Interface', practiceLanguage: 'Practice language', japanese: '日本語', english: 'English',
+    home: 'talk-alone home', languageLabel: 'Language', japanese: '日本語', english: 'English',
     practiceMode: 'Practice mode', speechMode: 'Speech', speechModeSub: 'One random topic', streamer: 'Streamer', streamerSub: 'Respond to chat', reflex: 'Quick response', reflexSub: 'Think on your feet',
     speechDescription: 'You will receive one random topic from the built-in collection. Speak about it for three minutes.', streamerDescription: 'Pick up random chat messages and keep talking until the session ends.', reflexDescription: 'Quickly name an association or deliver a comeback to an odd word combination.',
     duration: 'Session length', minutes: 'min', seconds: 'sec', commentFrequency: 'Comment frequency', training: 'Training', association: 'Quick association', combinationComeback: 'Mash-up comeback', category: 'Category', random: 'Random', start: 'Start', preparingRecording: 'Preparing microphone',
@@ -44,24 +47,21 @@ const UI_COPY = {
 } as const;
 
 type LanguageContextValue = {
-  uiLanguage: AppLanguage;
-  practiceLanguage: AppLanguage;
-  setUiLanguage: (language: AppLanguage) => void;
-  setPracticeLanguage: (language: AppLanguage) => void;
+  language: AppLanguage;
+  setLanguage: (language: AppLanguage) => void;
   copy: typeof UI_COPY.ja | typeof UI_COPY.en;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [uiLanguage, setUiLanguage] = useState<AppLanguage>('ja');
-  const [practiceLanguage, setPracticeLanguage] = useState<AppLanguage>('ja');
+  const [language, setLanguage] = useState<AppLanguage>(ENABLED_APP_LANGUAGES[0] ?? 'ja');
 
   useEffect(() => {
-    document.documentElement.lang = uiLanguage;
-  }, [uiLanguage]);
+    document.documentElement.lang = language;
+  }, [language]);
 
-  const value = useMemo(() => ({ uiLanguage, practiceLanguage, setUiLanguage, setPracticeLanguage, copy: UI_COPY[uiLanguage] }), [practiceLanguage, uiLanguage]);
+  const value = useMemo(() => ({ language, setLanguage, copy: UI_COPY[language] }), [language]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

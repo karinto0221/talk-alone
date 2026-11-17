@@ -1,11 +1,11 @@
-import { ArrowRight, Clock3, Languages, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import type { PracticeMode, ReflexRoundSetting, ReflexTrainingType } from '../type';
 import { formatTime } from '../util/time';
 import { STREAMER_COMMENT_FREQUENCIES, type StreamerCommentFrequency } from '../../streamer/config/comment-frequency';
-import { useLanguage, type AppLanguage } from '../../../i18n/LanguageContext';
+import { useLanguage } from '../../../i18n/LanguageContext';
 import { PracticeModeSelect } from './PracticeModeSelect';
 import { isReflexChallenge, resolveReflexRoundCount } from '../../reflex/config/reflex-session';
 
@@ -44,7 +44,7 @@ export function SessionReady({
   onStreamerCommentFrequencyChange,
   onStart,
 }: Props) {
-  const { practiceLanguage, setPracticeLanguage, copy } = useLanguage();
+  const { copy } = useLanguage();
   const selectedCategory = categories.find((category) => category.id === categoryId);
   const sectionLabel = mode === 'streamer' ? 'STREAMER PRACTICE' : mode === 'reflex' ? 'QUICK RESPONSE' : '3 MINUTE SPEECH';
   const description = mode === 'streamer'
@@ -63,16 +63,6 @@ export function SessionReady({
         <h1>TALK - ALONE</h1>
         <p className="description">{description}</p>
         <div className="practice-settings">
-          <label className="setting-group practice-language-setting">
-            <span>{copy.practiceLanguage}</span>
-            <div className="select-wrap">
-              <Languages size={15} />
-              <select value={practiceLanguage} onChange={(event) => setPracticeLanguage(event.target.value as AppLanguage)}>
-                <option value="ja">{copy.japanese}</option>
-                <option value="en">{copy.english}</option>
-              </select>
-            </div>
-          </label>
           <fieldset className="setting-group">
             <legend>{copy.practiceMode}</legend>
             <PracticeModeSelect value={mode} onChange={onModeChange} />
