@@ -11,13 +11,15 @@ fi
 
 BUCKET_NAME="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)"
 DISTRIBUTION_ID="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" --output text)"
+WEBSITE_URL="$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='WebsiteUrl'].OutputValue" --output text)"
 
 if [ -z "$BUCKET_NAME" ] || [ -z "$DISTRIBUTION_ID" ]; then
   echo "Could not read deployment outputs from CloudFormation stack: $STACK_NAME" >&2
   exit 1
 fi
 
-npm run build
+PUBLIC_SITE_URL="${TALK_ALONE_PUBLIC_SITE_URL:-$WEBSITE_URL}"
+VITE_PUBLIC_SITE_URL="$PUBLIC_SITE_URL" npm run build
 
 aws s3 sync frontend/dist/ "s3://$BUCKET_NAME" \
   --delete \

@@ -154,7 +154,7 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
           {!finishing && (
             <div className="challenge-transition-actions">
               {preparing && <Button variant="secondary" onClick={skipMicrophone}>{copy.continueWithoutMicrophone}</Button>}
-              <Button variant="ghost" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToSettingsShort}</Button>
+              <Button variant="danger" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToTop}</Button>
             </div>
           )}
         </section>
@@ -211,16 +211,16 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
         </div>
 
         <div className="reflex-controls">
-          <Button variant="ghost" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToSettingsShort}</Button>
+          <Button variant="danger" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToTop}</Button>
           <Button
             onClick={() => session.next()}
             disabled={session.loading}
             icon={session.loading ? <LoadingSpinner /> : <Shuffle size={17} />}
           >
-            {session.loading ? copy.preparing : session.round === session.targetRounds ? copy.showResult : 'NEXT'}
+            {session.loading ? copy.preparing : session.round === session.targetRounds ? copy.showResult : copy.next}
           </Button>
         </div>
-        <p className="reflex-key-hint">ENTER KEY / NEXT</p>
+        <p className="reflex-key-hint">{copy.keyboardNextHint}</p>
       </section>
     </>
   );

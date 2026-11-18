@@ -12,6 +12,9 @@ import { ENGLISH_STREAMER_COMMENTS, ENGLISH_STREAMER_USERNAMES } from '../../str
 import { createRandomTopic, listCategories } from './practice-content.service';
 
 describe('offline practice content', () => {
+  const japaneseTopics = Object.values(TOPIC_SEEDS).flat();
+  const japaneseWords = Object.values(WORD_TOPICS).flat();
+
   it('bundles every category and its expected topic data', () => {
     expect(listCategories()).toHaveLength(10);
     for (const category of CATEGORIES) {
@@ -40,6 +43,14 @@ describe('offline practice content', () => {
     expect(WORD_TOPICS.values).not.toContain('絶対希望');
     expect(WORD_TOPICS.daily).not.toContain('透明椅子');
     expect(WORD_TOPICS.favorites).not.toContain('巨大珈琲');
+  });
+
+  it('keeps Japanese speech content clean and free from known filler formats', () => {
+    const entries = [...japaneseTopics, ...japaneseWords];
+    expect(entries.every((entry) => entry.length > 0 && entry === entry.trim())).toBe(true);
+    expect(entries.every((entry) => !entry.includes('\n') && !/\s{2,}/.test(entry))).toBe(true);
+    expect(japaneseTopics.every((topic) => !topic.includes('自分の経験を交えて'))).toBe(true);
+    expect(japaneseTopics.every((topic) => !topic.includes('について話してください'))).toBe(true);
   });
 
   it('bundles natural English practice content for every category', () => {
@@ -90,7 +101,7 @@ describe('offline practice content', () => {
       descriptionNouns: 154,
       descriptionModifiers: 40,
     });
-    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(387_580);
+    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(387_780);
     expect(ENGLISH_ANALOGY_PROMPT_SOURCE_COUNTS).toEqual({
       associationModifiers: 30,
       associationAdjectives: 100,

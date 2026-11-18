@@ -1,4 +1,4 @@
-import { ArrowRight, Clock3, Radio, Shuffle, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Clock3, Radio, ShieldCheck, Shuffle, Sparkles, Zap } from 'lucide-react';
 import type { Category } from '../../../domain/practice';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -132,6 +132,7 @@ export function SessionReady({
             </label>
           )}
         </div>
+        <p className="privacy-note"><ShieldCheck size={16} />{copy.privacyNotice}</p>
         <Button
           onClick={onStart}
           disabled={loading || (usesCategory && categories.length === 0)}

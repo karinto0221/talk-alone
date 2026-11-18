@@ -7,6 +7,7 @@ import type { ReflexAttempt } from '../hook/useReflexSession';
 import type { ChallengeVideoResult as ChallengeVideoRecording } from '../hook/useChallengeVideoRecorder';
 import { summarizeReflexAttempts } from '../util/reflex-result';
 import { ChallengeVideoResult } from './ChallengeVideoResult';
+import { ResultShareCard } from '../../result/component/ResultShareCard';
 
 type Props = {
   trainingType: ReflexTrainingType;
@@ -22,13 +23,15 @@ const responseTime = (seconds: number) => `${seconds.toFixed(1)}s`;
 export function ReflexResult({ trainingType, attempts, challenge = false, recording = null, onRetry, onExit }: Props) {
   const { copy } = useLanguage();
   const summary = summarizeReflexAttempts(attempts);
+  const timedOutCount = attempts.filter((attempt) => attempt.timedOut).length;
+  const trainingName = trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle;
 
   return (
     <section className="practice-result reflex-result">
       <div className="result-status-icon complete"><Zap size={29} fill="currentColor" /></div>
       <p className="section-label">QUICK RESPONSE RESULT</p>
       <h1>{copy.reflexResult}</h1>
-      <p className="result-mode-name">{trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle} · {challenge ? copy.reflexChallengeTitle : copy.rounds(attempts.length)}</p>
+      <p className="result-mode-name">{trainingName} · {challenge ? copy.reflexChallengeTitle : copy.rounds(attempts.length)}</p>
 
       <div className="practice-result-grid reflex-stats">
         <div className="featured"><span>{copy.averageResponse}</span><strong>{responseTime(summary.averageSeconds)}</strong></div>
@@ -51,6 +54,24 @@ export function ReflexResult({ trainingType, attempts, challenge = false, record
       </section>
 
       {challenge && <ChallengeVideoResult recording={recording} />}
+
+      <ResultShareCard
+        data={{
+          eyebrow: 'QUICK RESPONSE',
+          title: trainingName,
+          subtitle: challenge ? `${copy.reflexChallengeTitle} · ${copy.rounds(attempts.length)}` : copy.rounds(attempts.length),
+          highlightLabel: copy.averageResponse,
+          highlightValue: responseTime(summary.averageSeconds),
+          stats: [
+            { label: copy.fastestResponse, value: responseTime(summary.fastestSeconds) },
+            { label: copy.slowestResponse, value: responseTime(summary.slowestSeconds) },
+            { label: copy.totalTime, value: formatTime(Math.round(summary.totalSeconds)) },
+            { label: copy.timeUp, value: challenge ? `${timedOutCount}問` : '—' },
+          ],
+        }}
+        fileName={`talk-alone-quick-${new Date().toISOString().slice(0, 10)}.png`}
+        shareText="talk-aloneで瞬発力トレーニングに挑戦しました。"
+      />
 
       <div className="practice-result-actions">
         <Button variant="secondary" onClick={onRetry} icon={<RotateCcw size={16} />}>{copy.retry}</Button>

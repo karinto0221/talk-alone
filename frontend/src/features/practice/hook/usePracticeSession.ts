@@ -41,6 +41,7 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
       const recording = await recorder.stop();
       onComplete({
         topic: state.topic.text,
+        categoryId: state.topic.categoryId,
         categoryName: state.topic.categoryName,
         language: state.topic.language,
         durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),

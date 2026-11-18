@@ -29,7 +29,7 @@ export function ActiveSession({ phase, topic, remaining, progress, recordingStat
         <h1>{topic.text}</h1>
       </article>
       <div className="session-controls">
-        <Button variant="ghost" onClick={onStop} disabled={phase === 'finishing'} icon={phase === 'finishing' ? <LoadingSpinner /> : <Square size={15} fill="currentColor" />}>{phase === 'finishing' ? copy.finishing : copy.stop}</Button>
+        <Button variant="danger" onClick={onStop} disabled={phase === 'finishing'} icon={phase === 'finishing' ? <LoadingSpinner /> : <Square size={15} fill="currentColor" />}>{phase === 'finishing' ? copy.finishing : copy.stop}</Button>
       </div>
     </section>
   );

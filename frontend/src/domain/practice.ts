@@ -16,6 +16,7 @@ export type Topic = {
 
 export type PracticeResult = {
   topic: string;
+  categoryId: string;
   categoryName: string;
   durationSeconds: number;
   completedAt: string;

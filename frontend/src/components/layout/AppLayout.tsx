@@ -1,6 +1,6 @@
-import { Mic2 } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { ENABLED_APP_LANGUAGES, useLanguage, type AppLanguage } from '../../i18n/LanguageContext';
+import { CreatorLinks } from './CreatorLinks';
 
 export function AppLayout() {
   const { language, setLanguage, copy } = useLanguage();
@@ -8,7 +8,8 @@ export function AppLayout() {
     <div className="app-frame">
       <header className="app-header">
         <NavLink className="logo" to="/" aria-label={copy.home}>
-          <span className="logo-icon"><Mic2 size={18} /></span><span className="logo-wordmark">talk-alone</span>
+          <span className="logo-icon"><img src="/app-icon.png" alt="" /></span>
+          <span className="logo-wordmark">TALK-ALONE</span>
         </NavLink>
         <div className="header-tools">
           <span className="session-duration">NO ACCOUNT · NO UPLOAD</span>
@@ -25,6 +26,7 @@ export function AppLayout() {
         </div>
       </header>
       <Outlet />
+      <CreatorLinks />
     </div>
   );
 }

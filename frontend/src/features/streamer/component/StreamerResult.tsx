@@ -3,6 +3,7 @@ import { Button } from '../../../components/ui/Button';
 import { useLanguage } from '../../../i18n/LanguageContext';
 import { formatTime } from '../../practice/util/time';
 import type { StreamerResult as StreamerResultData } from '../hook/useStreamerSession';
+import { ResultShareCard } from '../../result/component/ResultShareCard';
 
 type Props = {
   result: StreamerResultData;
@@ -50,6 +51,24 @@ export function StreamerResult({ result, onRetry, onExit }: Props) {
       ) : (
         <p className="result-unavailable-note"><Mic2 size={17} />{copy.voiceUnavailableResult}</p>
       )}
+
+      <ResultShareCard
+        data={{
+          eyebrow: 'STREAMER PRACTICE',
+          title: copy.streamerResult,
+          subtitle: result.completed ? copy.completed : copy.stoppedEarly,
+          highlightLabel: copy.elapsedTime,
+          highlightValue: formatTime(result.elapsedSeconds),
+          stats: [
+            { label: copy.completionRate, value: `${completionRate}%` },
+            { label: copy.commentCount, value: `${result.commentCount}` },
+            { label: copy.speakingRate, value: result.voiceActivity ? `${speakingRate}%` : '—' },
+            { label: copy.longestSilence, value: result.voiceActivity ? millisecondsToTime(result.voiceActivity.longestSilenceMilliseconds) : '—' },
+          ],
+        }}
+        fileName={`talk-alone-streamer-${new Date().toISOString().slice(0, 10)}.png`}
+        shareText="talk-aloneで配信トークを練習しました。"
+      />
 
       <div className="practice-result-actions">
         <Button variant="secondary" onClick={onRetry} icon={<RotateCcw size={16} />}>{copy.retry}</Button>

@@ -1,15 +1,17 @@
-import { ArrowLeft, CheckCircle2, Download, FileText, PlayCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Download, FileText, PlayCircle, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { formatTime } from '../practice/util/time';
 import { useTemporaryResult } from './context/TemporaryResultContext';
 import { recordingExtension, saveRecording } from './service/recording-file.service';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { ResultShareCard } from './component/ResultShareCard';
 
 export function ResultFeature() {
   const { copy } = useLanguage();
-  const { result, clearResult } = useTemporaryResult();
+  const navigate = useNavigate();
+  const { result, clearResult, requestSpeechRetry } = useTemporaryResult();
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [saveError, setSaveError] = useState('');
   const recording = result?.recording ?? null;
@@ -52,6 +54,17 @@ export function ResultFeature() {
     }
   };
 
+  const handleRetry = () => {
+    requestSpeechRetry({ categoryId: practiceResult.categoryId, language: practiceResult.language });
+    clearResult();
+    navigate('/');
+  };
+
+  const handleExit = () => {
+    clearResult();
+    navigate('/');
+  };
+
   return (
     <main className="page result-page compact-result-page">
       {saveError && <div className="error-banner" role="alert">{saveError}</div>}
@@ -60,7 +73,6 @@ export function ResultFeature() {
           <p className="section-label">SESSION RESULT</p>
           <h1>{copy.speechResult}</h1>
         </div>
-        <Link className="text-link" to="/" onClick={clearResult}><ArrowLeft size={15} />{copy.backToTop}</Link>
       </div>
 
       <section className="result-summary">
@@ -90,6 +102,27 @@ export function ResultFeature() {
           <div className="recording-empty"><p>{copy.noRecordingData}</p><span>{copy.noRecordingBody}</span></div>
         )}
       </section>
+
+      <ResultShareCard
+        data={{
+          eyebrow: '3 MINUTE SPEECH',
+          title: practiceResult.topic,
+          subtitle: practiceResult.categoryName,
+          highlightLabel: 'スピーチ時間',
+          highlightValue: formatTime(practiceResult.durationSeconds),
+          stats: [
+            { label: 'ジャンル', value: practiceResult.categoryName },
+            { label: '録音', value: recording ? 'あり' : 'なし' },
+          ],
+        }}
+        fileName={`talk-alone-speech-${practiceResult.completedAt.slice(0, 10)}.png`}
+        shareText="talk-aloneで3分スピーチに挑戦しました。"
+      />
+
+      <div className="practice-result-actions">
+        <Button variant="secondary" onClick={handleRetry} icon={<RotateCcw size={16} />}>{copy.retry}</Button>
+        <Button variant="ghost" onClick={handleExit} icon={<ArrowLeft size={16} />}>{copy.backToTop}</Button>
+      </div>
     </main>
   );
 }

@@ -73,7 +73,7 @@ export function StreamerSession({ durationMinutes, commentFrequency, language, m
             <div><dt>FREQUENCY</dt><dd>{copy.frequency[commentFrequency]}</dd></div>
             <div><dt>VOICE</dt><dd>{voiceStatusLabel}</dd></div>
           </dl>
-          <Button variant="ghost" onClick={() => session.finish(false)} icon={<Square size={14} fill="currentColor" />}>{copy.stop}</Button>
+          <Button variant="danger" onClick={() => session.finish(false)} icon={<Square size={14} fill="currentColor" />}>{copy.stop}</Button>
         </aside>
       </div>
     </section>

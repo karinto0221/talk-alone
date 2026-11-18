@@ -17,7 +17,7 @@ Browser
     ├── streamer: 内蔵コメント・ラジオネーム、タイマー、Web Audio APIによる発話区間計測
     ├── reflex: 例え連想・組み合わせツッコミ生成、回答時間計測、チャレンジ動画生成
     ├── i18n: 日本語・英語の画面と練習コンテンツ
-    └── result: メモリ上の録音再生とブラウザダウンロード
+    └── result: メモリ上の録音再生、共有用画像生成、ブラウザダウンロード
 ```
 
 画面遷移はHashRouterを使用する。CloudFrontやS3にパスごとのルーティング設定を要求しない。
@@ -51,6 +51,7 @@ Private S3 bucket
 - 3分スピーチの録音Blobと結果はReact Contextに1件だけ保持する。
 - 配信者と瞬発力の計測結果は各セッションのReact stateだけに保持する。
 - 瞬発力チャレンジの動画Blobも結果画面のメモリ上だけに保持し、保存または共有をユーザーが選んだ場合のみ端末の機能へ渡す。
+- 各モードの共有用画像はCanvas APIで結果画面を開いている間だけBlobとして生成し、保存または共有をユーザーが選んだ場合のみ端末の機能へ渡す。
 - ページ再読み込み、画面離脱、タブ終了で一時データは破棄される。
 
 ## 録音と権限
@@ -65,6 +66,7 @@ Private S3 bucket
 - チャレンジ動画はBlob URLで再生・保存する。Web Share APIがファイル共有に対応する端末でのみ汎用の共有ボタンを表示し、特定SNSとの連携は行わない。
 - 録音音声をS3や外部サービスへアップロードしない。
 - チャレンジ動画もS3や外部サービスへ自動送信せず、結果画面離脱時にBlob URLを破棄する。
+- 共有用リザルト画像も自動送信せず、結果画面離脱時にBlob URLを破棄する。
 - 配信者モードの音声ストリームは終了時または画面離脱時に停止し、音量の集計値を含め外部へ送信しない。
 
 ## レスポンシブ方針
@@ -81,4 +83,5 @@ Private S3 bucket
 - `npm run build`で`frontend/dist/`へ静的ファイルを生成する。
 - `infra/cloudformation.yaml`で非公開S3とCloudFrontを作成する。
 - `scripts/deploy-web.sh`でS3同期とCloudFront invalidationを行う。
+- OGPの絶対URLはデプロイ時のCloudFormation `WebsiteUrl`を使用し、独自ドメイン利用時は`TALK_ALONE_PUBLIC_SITE_URL`で上書きする。
 - ハッシュ付きアセットは長期キャッシュし、`index.html`はキャッシュしない。

@@ -141,7 +141,7 @@ export function drawChallengeVideoFrame(canvas: HTMLCanvasElement, frame: Challe
   context.font = '500 22px Inter, "Noto Sans JP", sans-serif';
   const instruction = frame.language === 'ja'
     ? '声に出して返し、終わったら「次へ」'
-    : 'Answer out loud, then select NEXT';
+    : 'Answer out loud, then select Next';
   context.textAlign = 'center';
   context.fillText(instruction, width / 2, 1_070);
 

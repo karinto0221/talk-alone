@@ -25,7 +25,7 @@ const createStreamerRun = (): StreamerRun => ({
 export function PracticeFeature() {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const { clearResult, setResult } = useTemporaryResult();
+  const { clearResult, consumeSpeechRetry, setResult } = useTemporaryResult();
   const complete = useCallback((practiceResult: PracticeResult, recording: RecordingResult | null) => {
     setResult({ practiceResult, recording });
     navigate('/result');
@@ -44,6 +44,17 @@ export function PracticeFeature() {
   const { state } = session;
 
   useEffect(() => clearResult(), [clearResult]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const retryOptions = consumeSpeechRetry();
+      if (!retryOptions) return;
+      setMode('speech');
+      setCategoryId(retryOptions.categoryId ?? '');
+      void session.start(retryOptions);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [consumeSpeechRetry, session.start]);
 
   const start = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
