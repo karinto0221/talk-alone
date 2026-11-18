@@ -1,15 +1,16 @@
 import { Download, Share2, Video } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../../../components/ui/Button';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { useLanguage } from '../../../i18n/LanguageContext';
 import type { ChallengeVideoResult as ChallengeVideoRecording } from '../hook/useChallengeVideoRecorder';
 import { challengeVideoExtension } from '../util/challenge-video';
 
-type Props = { recording: ChallengeVideoRecording | null };
+type Props = { recording: ChallengeVideoRecording | null; processing?: boolean };
 
 const createFileName = (mimeType: string) => `talk-alone-challenge-${new Date().toISOString().slice(0, 10)}.${challengeVideoExtension(mimeType)}`;
 
-export function ChallengeVideoResult({ recording }: Props) {
+export function ChallengeVideoResult({ recording, processing = false }: Props) {
   const { copy } = useLanguage();
   const [shareError, setShareError] = useState('');
   const videoUrl = useMemo(() => recording ? URL.createObjectURL(recording.blob) : '', [recording]);
@@ -23,6 +24,15 @@ export function ChallengeVideoResult({ recording }: Props) {
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   }, [videoUrl]);
+
+  if (processing) {
+    return (
+      <section className="challenge-video-result processing" aria-live="polite">
+        <div className="result-panel-heading"><Video size={16} /><span>{copy.challengeVideo}</span></div>
+        <div className="challenge-video-processing"><LoadingSpinner /><div><strong>{copy.challengeVideoProcessing}</strong><span>{copy.challengeVideoProcessingBody}</span></div></div>
+      </section>
+    );
+  }
 
   if (!recording || !file) {
     return (

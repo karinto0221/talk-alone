@@ -12,12 +12,17 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
   const { copy } = useLanguage();
   const [state, setState] = useState(initialState);
   const timer = useRef<number>();
+  const targetSecondsRef = useRef(SESSION_SECONDS);
+  const [targetSeconds, setTargetSeconds] = useState(SESSION_SECONDS);
   const recorder = useAudioRecorder();
   const [error, setError] = useState('');
   const [recordingNotice, setRecordingNotice] = useState('');
   const stopping = useRef(false);
 
   const start = useCallback(async (options: PracticeOptions) => {
+    const nextTargetSeconds = Math.min(60 * 60, Math.max(60, Math.round(options.durationSeconds)));
+    targetSecondsRef.current = nextTargetSeconds;
+    setTargetSeconds(nextTargetSeconds);
     setState({ ...initialState, phase: 'preparing' });
     setError('');
     setRecordingNotice('');
@@ -44,7 +49,8 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
         categoryId: state.topic.categoryId,
         categoryName: state.topic.categoryName,
         language: state.topic.language,
-        durationSeconds: Math.min(SESSION_SECONDS, Math.max(1, state.elapsedSeconds)),
+        durationSeconds: Math.min(targetSecondsRef.current, Math.max(1, state.elapsedSeconds)),
+        targetDurationSeconds: targetSecondsRef.current,
         completedAt: new Date().toISOString(),
       }, recording);
     } catch {
@@ -61,13 +67,13 @@ export function usePracticeSession(onComplete: (result: PracticeResult, recordin
   }, [state.phase]);
 
   useEffect(() => {
-    if (state.phase === 'speaking' && state.elapsedSeconds >= SESSION_SECONDS) void stop();
-  }, [state.elapsedSeconds, state.phase, stop]);
+    if (state.phase === 'speaking' && state.elapsedSeconds >= targetSeconds) void stop();
+  }, [state.elapsedSeconds, state.phase, stop, targetSeconds]);
 
   return {
     state,
-    remainingSeconds: SESSION_SECONDS - state.elapsedSeconds,
-    progress: Math.min(100, (state.elapsedSeconds / SESSION_SECONDS) * 100),
+    remainingSeconds: targetSeconds - state.elapsedSeconds,
+    progress: Math.min(100, (state.elapsedSeconds / targetSeconds) * 100),
     error,
     recordingStatus: recorder.status,
     recordingNotice,

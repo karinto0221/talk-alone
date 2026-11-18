@@ -55,7 +55,7 @@ export function ResultFeature() {
   };
 
   const handleRetry = () => {
-    requestSpeechRetry({ categoryId: practiceResult.categoryId, language: practiceResult.language });
+    requestSpeechRetry({ categoryId: practiceResult.categoryId, language: practiceResult.language, durationSeconds: practiceResult.targetDurationSeconds });
     clearResult();
     navigate('/');
   };
@@ -105,7 +105,7 @@ export function ResultFeature() {
 
       <ResultShareCard
         data={{
-          eyebrow: '3 MINUTE SPEECH',
+          eyebrow: 'SPEECH PRACTICE',
           title: practiceResult.topic,
           subtitle: practiceResult.categoryName,
           highlightLabel: 'スピーチ時間',
@@ -116,7 +116,7 @@ export function ResultFeature() {
           ],
         }}
         fileName={`talk-alone-speech-${practiceResult.completedAt.slice(0, 10)}.png`}
-        shareText="talk-aloneで3分スピーチに挑戦しました。"
+        shareText="talk-aloneでスピーチ練習に挑戦しました。"
       />
 
       <div className="practice-result-actions">

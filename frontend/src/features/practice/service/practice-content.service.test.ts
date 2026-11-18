@@ -93,7 +93,7 @@ describe('offline practice content', () => {
     expect(STREAMER_USERNAMES).toHaveLength(5_000);
     expect(new Set(STREAMER_USERNAMES).size).toBe(5_000);
     expect(STREAMER_USERNAMES.every((username) => username.length <= 20)).toBe(true);
-    expect(ANALOGY_INTENSITY_ADJECTIVE_COUNT).toBe(100);
+    expect(ANALOGY_INTENSITY_ADJECTIVE_COUNT).toBe(150);
     expect(ANALOGY_PROMPT_SOURCE_COUNTS).toEqual({
       actions: 40,
       objectModifiers: 40,
@@ -101,7 +101,7 @@ describe('offline practice content', () => {
       descriptionNouns: 154,
       descriptionModifiers: 40,
     });
-    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(387_780);
+    expect(ANALOGY_PROMPT_VARIATION_COUNT).toBe(389_380);
     expect(ENGLISH_ANALOGY_PROMPT_SOURCE_COUNTS).toEqual({
       associationModifiers: 30,
       associationAdjectives: 100,

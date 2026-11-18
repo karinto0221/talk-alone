@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { ENABLED_APP_LANGUAGES, useLanguage, type AppLanguage } from '../../i18n/LanguageContext';
 import { CreatorLinks } from './CreatorLinks';
+import { PwaStatus } from '../pwa/PwaStatus';
 
 export function AppLayout() {
   const { language, setLanguage, copy } = useLanguage();
@@ -25,6 +26,7 @@ export function AppLayout() {
           )}
         </div>
       </header>
+      <PwaStatus />
       <Outlet />
       <CreatorLinks />
     </div>

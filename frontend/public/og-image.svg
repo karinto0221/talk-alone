@@ -24,7 +24,7 @@
   <text x="91" y="342" fill="#8795aa" font-family="Inter, 'Noto Sans JP', sans-serif" font-size="28">話し続ける力と、すぐに返す力をブラウザで練習。</text>
   <g transform="translate(88 410)" font-family="Inter, 'Noto Sans JP', sans-serif" font-size="22" font-weight="600">
     <rect width="228" height="58" rx="29" fill="#14223a" stroke="#30415d"/>
-    <text x="114" y="37" fill="#9fbcff" text-anchor="middle">3分スピーチ</text>
+    <text x="114" y="37" fill="#9fbcff" text-anchor="middle">スピーチ</text>
     <rect x="246" width="192" height="58" rx="29" fill="#14223a" stroke="#30415d"/>
     <text x="342" y="37" fill="#9fbcff" text-anchor="middle">瞬発力</text>
     <rect x="456" width="248" height="58" rx="29" fill="#14223a" stroke="#30415d"/>

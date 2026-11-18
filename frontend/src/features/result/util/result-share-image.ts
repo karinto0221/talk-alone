@@ -32,16 +32,7 @@ export function createResultShareImage(data: ResultShareImageData): Promise<Blob
   const context = canvas.getContext('2d');
   if (!context) return Promise.reject(new Error('Canvas is not available'));
 
-  const background = context.createLinearGradient(0, 0, WIDTH, HEIGHT);
-  background.addColorStop(0, '#080d18');
-  background.addColorStop(1, '#14223a');
-  context.fillStyle = background;
-  context.fillRect(0, 0, WIDTH, HEIGHT);
-
-  const glow = context.createRadialGradient(920, 80, 0, 920, 80, 560);
-  glow.addColorStop(0, 'rgba(91, 140, 255, .24)');
-  glow.addColorStop(1, 'rgba(91, 140, 255, 0)');
-  context.fillStyle = glow;
+  context.fillStyle = '#080d18';
   context.fillRect(0, 0, WIDTH, HEIGHT);
 
   context.fillStyle = '#77a2ff';

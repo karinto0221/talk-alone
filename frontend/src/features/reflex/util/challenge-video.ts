@@ -1,7 +1,8 @@
 export const CHALLENGE_VIDEO_WIDTH = 720;
 export const CHALLENGE_VIDEO_HEIGHT = 1_280;
 
-export type ChallengeVideoFrame = {
+type ChallengePromptVideoFrame = {
+  kind: 'prompt';
   language: 'ja' | 'en';
   title: string;
   promptLabel: string;
@@ -10,6 +11,20 @@ export type ChallengeVideoFrame = {
   totalRounds: number;
   remainingSeconds: number;
 };
+
+type ChallengeResultVideoFrame = {
+  kind: 'result';
+  language: 'ja' | 'en';
+  title: string;
+  totalRounds: number;
+  averageSeconds: number;
+  fastestSeconds: number;
+  slowestSeconds: number;
+  totalSeconds: number;
+  timedOutCount: number;
+};
+
+export type ChallengeVideoFrame = ChallengePromptVideoFrame | ChallengeResultVideoFrame;
 
 const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   const tokens = /\s/.test(text) ? text.split(/(\s+)/).filter(Boolean) : Array.from(text);
@@ -48,25 +63,84 @@ export function drawChallengeVideoFrame(canvas: HTMLCanvasElement, frame: Challe
   const height = CHALLENGE_VIDEO_HEIGHT;
   context.clearRect(0, 0, width, height);
 
-  const background = context.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, '#080d18');
-  background.addColorStop(0.58, '#0c1525');
-  background.addColorStop(1, '#111d31');
-  context.fillStyle = background;
+  context.fillStyle = '#080d18';
   context.fillRect(0, 0, width, height);
-
-  context.fillStyle = 'rgba(91, 140, 255, 0.16)';
-  context.beginPath();
-  context.arc(650, 70, 230, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = 'rgba(56, 189, 248, 0.09)';
-  context.beginPath();
-  context.arc(45, 1_170, 260, 0, Math.PI * 2);
-  context.fill();
 
   context.fillStyle = '#e6edf8';
   context.font = '700 30px Inter, "Noto Sans JP", sans-serif';
   context.fillText('talk-alone', 56, 82);
+
+  if (frame.kind === 'result') {
+    roundedRect(context, 526, 48, 138, 46, 23);
+    context.fillStyle = 'rgba(52, 211, 153, 0.13)';
+    context.fill();
+    context.fillStyle = '#6ee7b7';
+    context.font = '700 17px ui-monospace, monospace';
+    context.textAlign = 'center';
+    context.fillText('RESULT', 595, 78);
+    context.textAlign = 'left';
+
+    context.fillStyle = '#77a2ff';
+    context.font = '700 17px ui-monospace, monospace';
+    context.fillText('QUICK RESPONSE RESULT', 56, 168);
+    context.fillStyle = '#e6edf8';
+    context.font = '700 48px Inter, "Noto Sans JP", sans-serif';
+    context.fillText(frame.title, 56, 238);
+    context.fillStyle = '#8795aa';
+    context.font = '600 19px Inter, "Noto Sans JP", sans-serif';
+    context.fillText(frame.language === 'ja' ? `${frame.totalRounds}問 完了` : `${frame.totalRounds} PROMPTS COMPLETE`, 56, 282);
+
+    roundedRect(context, 56, 342, 608, 280, 28);
+    context.fillStyle = 'rgba(14, 22, 37, 0.96)';
+    context.fill();
+    context.strokeStyle = '#30415d';
+    context.lineWidth = 2;
+    context.stroke();
+    context.fillStyle = '#8795aa';
+    context.font = '700 19px Inter, "Noto Sans JP", sans-serif';
+    context.textAlign = 'center';
+    context.fillText(frame.language === 'ja' ? '平均回答時間' : 'AVERAGE RESPONSE', width / 2, 420);
+    context.fillStyle = '#77a2ff';
+    context.font = '700 112px ui-monospace, monospace';
+    context.fillText(`${frame.averageSeconds.toFixed(1)}s`, width / 2, 552);
+    context.textAlign = 'left';
+
+    const roundedTotalSeconds = Math.round(frame.totalSeconds);
+    const stats = [
+      [frame.language === 'ja' ? '最速' : 'FASTEST', `${frame.fastestSeconds.toFixed(1)}s`],
+      [frame.language === 'ja' ? '最長' : 'SLOWEST', `${frame.slowestSeconds.toFixed(1)}s`],
+      [frame.language === 'ja' ? '合計時間' : 'TOTAL', `${String(Math.floor(roundedTotalSeconds / 60)).padStart(2, '0')}:${String(roundedTotalSeconds % 60).padStart(2, '0')}`],
+      [frame.language === 'ja' ? '時間切れ' : 'TIME OUT', frame.language === 'ja' ? `${frame.timedOutCount}問` : `${frame.timedOutCount}`],
+    ] as const;
+
+    stats.forEach(([label, value], index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      const x = 56 + column * 312;
+      const y = 666 + row * 184;
+      roundedRect(context, x, y, 296, 164, 22);
+      context.fillStyle = 'rgba(14, 22, 37, 0.9)';
+      context.fill();
+      context.strokeStyle = '#223047';
+      context.stroke();
+      context.fillStyle = '#5d6d84';
+      context.font = '700 17px Inter, "Noto Sans JP", sans-serif';
+      context.fillText(label, x + 26, y + 48);
+      context.fillStyle = '#dce5f2';
+      context.font = '700 42px ui-monospace, "Noto Sans JP", monospace';
+      context.fillText(value, x + 26, y + 112);
+    });
+
+    context.fillStyle = '#8795aa';
+    context.font = '500 21px Inter, "Noto Sans JP", sans-serif';
+    context.textAlign = 'center';
+    context.fillText(frame.language === 'ja' ? 'チャレンジ完了' : 'CHALLENGE COMPLETE', width / 2, 1_102);
+    context.fillStyle = '#77a2ff';
+    context.font = '600 18px ui-monospace, monospace';
+    context.fillText('talk-alone', width / 2, 1_210);
+    context.textAlign = 'left';
+    return;
+  }
 
   roundedRect(context, 548, 48, 116, 46, 23);
   context.fillStyle = 'rgba(239, 68, 68, 0.14)';

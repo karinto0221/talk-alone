@@ -24,10 +24,20 @@ VITE_PUBLIC_SITE_URL="$PUBLIC_SITE_URL" npm run build
 aws s3 sync frontend/dist/ "s3://$BUCKET_NAME" \
   --delete \
   --exclude index.html \
+  --exclude sw.js \
+  --exclude manifest.webmanifest \
   --cache-control "public,max-age=31536000,immutable"
 
 aws s3 cp frontend/dist/index.html "s3://$BUCKET_NAME/index.html" \
   --content-type "text/html; charset=utf-8" \
+  --cache-control "no-cache, no-store, must-revalidate"
+
+aws s3 cp frontend/dist/sw.js "s3://$BUCKET_NAME/sw.js" \
+  --content-type "application/javascript; charset=utf-8" \
+  --cache-control "no-cache, no-store, must-revalidate"
+
+aws s3 cp frontend/dist/manifest.webmanifest "s3://$BUCKET_NAME/manifest.webmanifest" \
+  --content-type "application/manifest+json; charset=utf-8" \
   --cache-control "no-cache, no-store, must-revalidate"
 
 aws cloudfront create-invalidation \

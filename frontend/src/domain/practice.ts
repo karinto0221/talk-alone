@@ -19,6 +19,7 @@ export type PracticeResult = {
   categoryId: string;
   categoryName: string;
   durationSeconds: number;
+  targetDurationSeconds: number;
   completedAt: string;
   language: ContentLanguage;
 };

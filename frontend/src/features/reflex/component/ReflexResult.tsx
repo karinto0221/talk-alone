@@ -14,16 +14,16 @@ type Props = {
   attempts: readonly ReflexAttempt[];
   challenge?: boolean;
   recording?: ChallengeVideoRecording | null;
+  videoProcessing?: boolean;
   onRetry: () => void;
   onExit: () => void;
 };
 
 const responseTime = (seconds: number) => `${seconds.toFixed(1)}s`;
 
-export function ReflexResult({ trainingType, attempts, challenge = false, recording = null, onRetry, onExit }: Props) {
+export function ReflexResult({ trainingType, attempts, challenge = false, recording = null, videoProcessing = false, onRetry, onExit }: Props) {
   const { copy } = useLanguage();
   const summary = summarizeReflexAttempts(attempts);
-  const timedOutCount = attempts.filter((attempt) => attempt.timedOut).length;
   const trainingName = trainingType === 'association' ? copy.associationTitle : copy.combinationComebackTitle;
 
   return (
@@ -53,25 +53,26 @@ export function ReflexResult({ trainingType, attempts, challenge = false, record
         </ol>
       </section>
 
-      {challenge && <ChallengeVideoResult recording={recording} />}
+      {challenge && <ChallengeVideoResult recording={recording} processing={videoProcessing} />}
 
-      <ResultShareCard
-        data={{
-          eyebrow: 'QUICK RESPONSE',
-          title: trainingName,
-          subtitle: challenge ? `${copy.reflexChallengeTitle} · ${copy.rounds(attempts.length)}` : copy.rounds(attempts.length),
-          highlightLabel: copy.averageResponse,
-          highlightValue: responseTime(summary.averageSeconds),
-          stats: [
-            { label: copy.fastestResponse, value: responseTime(summary.fastestSeconds) },
-            { label: copy.slowestResponse, value: responseTime(summary.slowestSeconds) },
-            { label: copy.totalTime, value: formatTime(Math.round(summary.totalSeconds)) },
-            { label: copy.timeUp, value: challenge ? `${timedOutCount}問` : '—' },
-          ],
-        }}
-        fileName={`talk-alone-quick-${new Date().toISOString().slice(0, 10)}.png`}
-        shareText="talk-aloneで瞬発力トレーニングに挑戦しました。"
-      />
+      {!challenge && (
+        <ResultShareCard
+          data={{
+            eyebrow: 'QUICK RESPONSE',
+            title: trainingName,
+            subtitle: copy.rounds(attempts.length),
+            highlightLabel: copy.averageResponse,
+            highlightValue: responseTime(summary.averageSeconds),
+            stats: [
+              { label: copy.fastestResponse, value: responseTime(summary.fastestSeconds) },
+              { label: copy.slowestResponse, value: responseTime(summary.slowestSeconds) },
+              { label: copy.totalTime, value: formatTime(Math.round(summary.totalSeconds)) },
+            ],
+          }}
+          fileName={`talk-alone-quick-${new Date().toISOString().slice(0, 10)}.png`}
+          shareText="talk-aloneで瞬発力トレーニングに挑戦しました。"
+        />
+      )}
 
       <div className="practice-result-actions">
         <Button variant="secondary" onClick={onRetry} icon={<RotateCcw size={16} />}>{copy.retry}</Button>

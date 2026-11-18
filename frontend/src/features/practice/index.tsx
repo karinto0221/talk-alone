@@ -15,10 +15,11 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { requestVoiceActivityInput, type VoiceActivityInput } from '../streamer/hook/useVoiceActivityAnalyzer';
 
 const clampDuration = (value: number) => Math.min(60, Math.max(1, Number.isFinite(value) ? Math.round(value) : 1));
-type StreamerRun = { id: string; microphoneInput: Promise<VoiceActivityInput | null> };
+type StreamerRun = { id: string; durationMinutes: number; microphoneInput: Promise<VoiceActivityInput | null> };
 
-const createStreamerRun = (): StreamerRun => ({
+const createStreamerRun = (durationMinutes: number): StreamerRun => ({
   id: `${Date.now()}-${Math.random()}`,
+  durationMinutes,
   microphoneInput: requestVoiceActivityInput(),
 });
 
@@ -35,8 +36,9 @@ export function PracticeFeature() {
   const [categoryId, setCategoryId] = useState('');
   const [mode, setMode] = useState<PracticeMode>('speech');
   const [reflexTrainingType, setReflexTrainingType] = useState<ReflexTrainingType>('association');
-  const [reflexRoundSetting, setReflexRoundSetting] = useState<ReflexRoundSetting>(10);
-  const [durationMinutes, setDurationMinutes] = useState(10);
+  const [reflexRoundSetting, setReflexRoundSetting] = useState<ReflexRoundSetting>(5);
+  const [speechDurationMinutes, setSpeechDurationMinutes] = useState('3');
+  const [streamerDurationMinutes, setStreamerDurationMinutes] = useState('10');
   const [streamerCommentFrequency, setStreamerCommentFrequency] = useState<StreamerCommentFrequency>('normal');
   const [streamerRun, setStreamerRun] = useState<StreamerRun | null>(null);
   const [reflexActive, setReflexActive] = useState(false);
@@ -51,6 +53,7 @@ export function PracticeFeature() {
       if (!retryOptions) return;
       setMode('speech');
       setCategoryId(retryOptions.categoryId ?? '');
+      setSpeechDurationMinutes(String(retryOptions.durationSeconds / 60));
       void session.start(retryOptions);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -59,8 +62,9 @@ export function PracticeFeature() {
   const start = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (mode === 'streamer') {
-      setDurationMinutes((current) => clampDuration(current));
-      setStreamerRun(createStreamerRun());
+      const resolvedDuration = clampDuration(Number(streamerDurationMinutes));
+      setStreamerDurationMinutes(String(resolvedDuration));
+      setStreamerRun(createStreamerRun(resolvedDuration));
       return;
     }
     if (mode === 'reflex') {
@@ -68,11 +72,13 @@ export function PracticeFeature() {
       setReflexActive(true);
       return;
     }
-    void session.start({ categoryId: categoryId || undefined, language });
+    const resolvedDuration = clampDuration(Number(speechDurationMinutes));
+    setSpeechDurationMinutes(String(resolvedDuration));
+    void session.start({ categoryId: categoryId || undefined, language, durationSeconds: resolvedDuration * 60 });
   };
 
   if (streamerRun) {
-    return <main className="page practice-page streamer-page"><StreamerSession key={streamerRun.id} durationMinutes={durationMinutes} commentFrequency={streamerCommentFrequency} language={language} microphoneInput={streamerRun.microphoneInput} onRetry={() => setStreamerRun(createStreamerRun())} onExit={() => { setStreamerRun(null); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
+    return <main className="page practice-page streamer-page"><StreamerSession key={streamerRun.id} durationMinutes={streamerRun.durationMinutes} commentFrequency={streamerCommentFrequency} language={language} microphoneInput={streamerRun.microphoneInput} onRetry={() => setStreamerRun(createStreamerRun(streamerRun.durationMinutes))} onExit={() => { setStreamerRun(null); window.scrollTo({ top: 0, behavior: 'instant' }); }} /></main>;
   }
 
   if (reflexActive) {
@@ -91,13 +97,15 @@ export function PracticeFeature() {
           mode={mode}
           reflexTrainingType={reflexTrainingType}
           reflexRoundSetting={reflexRoundSetting}
-          durationMinutes={durationMinutes}
+          speechDurationMinutes={speechDurationMinutes}
+          streamerDurationMinutes={streamerDurationMinutes}
           streamerCommentFrequency={streamerCommentFrequency}
           onCategoryChange={setCategoryId}
           onModeChange={setMode}
           onReflexTrainingTypeChange={setReflexTrainingType}
           onReflexRoundSettingChange={setReflexRoundSetting}
-          onDurationChange={(value) => setDurationMinutes(clampDuration(value))}
+          onSpeechDurationChange={setSpeechDurationMinutes}
+          onStreamerDurationChange={setStreamerDurationMinutes}
           onStreamerCommentFrequencyChange={setStreamerCommentFrequency}
           onStart={start}
         />

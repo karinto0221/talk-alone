@@ -16,13 +16,15 @@ type Props = {
   mode: PracticeMode;
   reflexTrainingType: ReflexTrainingType;
   reflexRoundSetting: ReflexRoundSetting;
-  durationMinutes: number;
+  speechDurationMinutes: string;
+  streamerDurationMinutes: string;
   streamerCommentFrequency: StreamerCommentFrequency;
   onCategoryChange: (categoryId: string) => void;
   onModeChange: (mode: PracticeMode) => void;
   onReflexTrainingTypeChange: (trainingType: ReflexTrainingType) => void;
   onReflexRoundSettingChange: (setting: ReflexRoundSetting) => void;
-  onDurationChange: (durationMinutes: number) => void;
+  onSpeechDurationChange: (durationMinutes: string) => void;
+  onStreamerDurationChange: (durationMinutes: string) => void;
   onStreamerCommentFrequencyChange: (frequency: StreamerCommentFrequency) => void;
   onStart: () => void;
 };
@@ -34,19 +36,21 @@ export function SessionReady({
   mode,
   reflexTrainingType,
   reflexRoundSetting,
-  durationMinutes,
+  speechDurationMinutes,
+  streamerDurationMinutes,
   streamerCommentFrequency,
   onCategoryChange,
   onModeChange,
   onReflexTrainingTypeChange,
   onReflexRoundSettingChange,
-  onDurationChange,
+  onSpeechDurationChange,
+  onStreamerDurationChange,
   onStreamerCommentFrequencyChange,
   onStart,
 }: Props) {
   const { copy } = useLanguage();
   const selectedCategory = categories.find((category) => category.id === categoryId);
-  const sectionLabel = mode === 'streamer' ? 'STREAMER PRACTICE' : mode === 'reflex' ? 'QUICK RESPONSE' : '3 MINUTE SPEECH';
+  const sectionLabel = mode === 'streamer' ? 'STREAMER PRACTICE' : mode === 'reflex' ? 'QUICK RESPONSE' : 'SPEECH PRACTICE';
   const description = mode === 'streamer'
     ? copy.streamerDescription
     : mode === 'reflex'
@@ -55,6 +59,17 @@ export function SessionReady({
   const usesCategory = mode === 'speech';
   const reflexChallenge = isReflexChallenge(reflexRoundSetting);
   const reflexRoundCount = resolveReflexRoundCount(reflexRoundSetting);
+  const durationMinutes = mode === 'speech' ? speechDurationMinutes : streamerDurationMinutes;
+  const parsedDuration = Number(durationMinutes);
+  const hasValidDuration = durationMinutes.trim() !== ''
+    && Number.isInteger(parsedDuration)
+    && parsedDuration >= 1
+    && parsedDuration <= 60;
+  const previewDuration = hasValidDuration ? parsedDuration : 1;
+  const updateDuration = (value: string, onChange: (duration: string) => void) => {
+    const numericValue = Number(value);
+    onChange(value.trim() !== '' && Number.isFinite(numericValue) && numericValue > 60 ? '60' : value);
+  };
 
   return (
     <section className="practice-ready">
@@ -73,7 +88,7 @@ export function SessionReady({
                 <span>{copy.duration}</span>
                 <div className="duration-input">
                   <Clock3 size={15} />
-                  <input type="number" min="1" max="60" step="1" value={durationMinutes} onChange={(event) => onDurationChange(Number(event.target.value))} />
+                  <input type="number" min="1" max="60" step="1" required aria-invalid={!hasValidDuration} value={streamerDurationMinutes} onChange={(event) => updateDuration(event.target.value, onStreamerDurationChange)} />
                   <b>{copy.minutes}</b>
                 </div>
               </label>
@@ -120,22 +135,32 @@ export function SessionReady({
               </label>
             </>
           ) : (
-            <label className="setting-group category-setting">
-              <span>{copy.category}</span>
-              <div className="select-wrap">
-                <Shuffle size={15} />
-                <select value={categoryId} onChange={(event) => onCategoryChange(event.target.value)}>
-                  <option value="">{copy.random}</option>
-                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-                </select>
-              </div>
-            </label>
+            <>
+              <label className="setting-group category-setting">
+                <span>{copy.category}</span>
+                <div className="select-wrap">
+                  <Shuffle size={15} />
+                  <select value={categoryId} onChange={(event) => onCategoryChange(event.target.value)}>
+                    <option value="">{copy.random}</option>
+                    {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                  </select>
+                </div>
+              </label>
+              <label className="setting-group duration-setting">
+                <span>{copy.duration}</span>
+                <div className="duration-input">
+                  <Clock3 size={15} />
+                  <input type="number" min="1" max="60" step="1" required aria-invalid={!hasValidDuration} value={speechDurationMinutes} onChange={(event) => updateDuration(event.target.value, onSpeechDurationChange)} />
+                  <b>{copy.minutes}</b>
+                </div>
+              </label>
+            </>
           )}
         </div>
         <p className="privacy-note"><ShieldCheck size={16} />{copy.privacyNotice}</p>
         <Button
           onClick={onStart}
-          disabled={loading || (usesCategory && categories.length === 0)}
+          disabled={loading || (usesCategory && categories.length === 0) || (mode !== 'reflex' && !hasValidDuration)}
           icon={loading ? <LoadingSpinner /> : <ArrowRight size={18} />}
         >
           {loading ? copy.preparingRecording : copy.start}
@@ -143,7 +168,7 @@ export function SessionReady({
       </div>
       <div className="timer-preview" aria-hidden="true">
         <div className="preview-meta">{mode === 'reflex' ? <Zap size={16} /> : <Clock3 size={16} />} {mode === 'reflex' ? reflexChallenge ? 'CHALLENGE' : 'FREE PRACTICE' : 'SESSION TIMER'}</div>
-        <strong>{mode === 'reflex' ? reflexChallenge ? '00:10' : String(reflexRoundCount).padStart(2, '0') : mode === 'streamer' ? formatTime(durationMinutes * 60) : '03:00'}</strong>
+        <strong>{mode === 'reflex' ? reflexChallenge ? '00:10' : String(reflexRoundCount).padStart(2, '0') : formatTime(previewDuration * 60)}</strong>
         <div className="preview-track"><span /></div>
         <div className="preview-grid">
           <span>{mode === 'streamer' || mode === 'reflex' ? 'PROMPT' : 'TOPIC'}</span>
@@ -151,7 +176,7 @@ export function SessionReady({
           <span>MODE</span>
           <span>{mode === 'streamer' ? 'STREAMER' : mode === 'reflex' ? 'REFLEX' : 'SPEECH'}</span>
           <span>LIMIT</span>
-          <span>{mode === 'reflex' ? reflexChallenge ? '5 × 10 SEC' : `${reflexRoundCount} ROUNDS` : mode === 'streamer' ? `${durationMinutes} MIN` : '3 MIN'}</span>
+          <span>{mode === 'reflex' ? reflexChallenge ? '5 × 10 SEC' : `${reflexRoundCount} ROUNDS` : `${previewDuration} MIN`}</span>
         </div>
       </div>
     </section>

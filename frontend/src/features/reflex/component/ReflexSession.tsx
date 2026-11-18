@@ -1,5 +1,5 @@
 import { ArrowLeft, Shuffle, Sparkles, Video, Zap } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import type { ReflexRoundSetting, ReflexTrainingType } from '../../practice/type';
@@ -13,6 +13,8 @@ import {
   resolveReflexRoundCount,
 } from '../config/reflex-session';
 import { useChallengeVideoRecorder, type ChallengeVideoResult } from '../hook/useChallengeVideoRecorder';
+import { summarizeReflexAttempts } from '../util/reflex-result';
+import type { ChallengeVideoFrame } from '../util/challenge-video';
 
 type Props = {
   trainingType: ReflexTrainingType;
@@ -22,7 +24,8 @@ type Props = {
   onExit: () => void;
 };
 
-type ChallengeStage = 'preparing' | 'countdown' | 'running' | 'finishing' | 'result';
+type ChallengeStage = 'preparing' | 'countdown' | 'running' | 'result';
+const RESULT_VIDEO_DURATION_MS = 2_000;
 
 export function ReflexSession({ trainingType, roundSetting, language, onRetryChallenge, onExit }: Props) {
   const { copy } = useLanguage();
@@ -37,15 +40,31 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
   const [challengeStage, setChallengeStage] = useState<ChallengeStage>(challenge ? 'preparing' : 'running');
   const [countdown, setCountdown] = useState(3);
   const [videoRecording, setVideoRecording] = useState<ChallengeVideoResult | null>(null);
-  const videoFrame = useMemo(() => ({
-    language,
-    title: trainingTitle,
-    promptLabel: session.prompt.label,
-    prompt: session.prompt.text,
-    round: session.round,
-    totalRounds: session.targetRounds,
-    remainingSeconds: session.remainingSeconds,
-  }), [language, session.prompt.label, session.prompt.text, session.remainingSeconds, session.round, session.targetRounds, trainingTitle]);
+  const [videoFinalized, setVideoFinalized] = useState(false);
+  const videoFinalizationStarted = useRef(false);
+  const resultSummary = useMemo(() => summarizeReflexAttempts(session.attempts), [session.attempts]);
+  const videoFrame = useMemo<ChallengeVideoFrame>(() => session.phase === 'complete'
+    ? {
+        kind: 'result',
+        language,
+        title: trainingTitle,
+        totalRounds: session.targetRounds,
+        averageSeconds: resultSummary.averageSeconds,
+        fastestSeconds: resultSummary.fastestSeconds,
+        slowestSeconds: resultSummary.slowestSeconds,
+        totalSeconds: resultSummary.totalSeconds,
+        timedOutCount: session.attempts.filter((attempt) => attempt.timedOut).length,
+      }
+    : {
+        kind: 'prompt',
+        language,
+        title: trainingTitle,
+        promptLabel: session.prompt.label,
+        prompt: session.prompt.text,
+        round: session.round,
+        totalRounds: session.targetRounds,
+        remainingSeconds: session.remainingSeconds,
+      }, [language, resultSummary, session.attempts, session.phase, session.prompt.label, session.prompt.text, session.remainingSeconds, session.round, session.targetRounds, trainingTitle]);
   const videoRecorder = useChallengeVideoRecorder(videoFrame);
   const {
     canvasRef,
@@ -92,12 +111,20 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
 
   useEffect(() => {
     if (!challenge || session.phase !== 'complete' || challengeStage !== 'running') return;
-    setChallengeStage('finishing');
-    void stopVideo().then((recording) => {
-      setVideoRecording(recording);
-      setChallengeStage('result');
-    });
-  }, [challenge, challengeStage, session.phase, stopVideo]);
+    setChallengeStage('result');
+  }, [challenge, challengeStage, session.phase]);
+
+  useEffect(() => {
+    if (!challenge || session.phase !== 'complete' || challengeStage !== 'result' || videoStatus === 'unavailable' || videoFinalizationStarted.current) return;
+    videoFinalizationStarted.current = true;
+    const timer = window.setTimeout(() => {
+      void stopVideo().then((recording) => {
+        setVideoRecording(recording);
+        setVideoFinalized(true);
+      });
+    }, RESULT_VIDEO_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [challenge, challengeStage, session.phase, stopVideo, videoStatus]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -130,6 +157,7 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
           attempts={session.attempts}
           challenge={challenge}
           recording={videoRecording}
+          videoProcessing={challenge && !videoFinalized && videoStatus !== 'unavailable'}
           onRetry={challenge ? onRetryChallenge : session.restart}
           onExit={onExit}
         />
@@ -139,24 +167,21 @@ export function ReflexSession({ trainingType, roundSetting, language, onRetryCha
 
   if (challenge && challengeStage !== 'running') {
     const preparing = challengeStage === 'preparing';
-    const finishing = challengeStage === 'finishing' || session.phase === 'complete';
     return (
       <>
         {canvas}
         <section className="reflex-session challenge-transition">
           <div className="challenge-transition-card" aria-live="polite">
-            {preparing || finishing ? <LoadingSpinner /> : <Video size={26} />}
+            {preparing ? <LoadingSpinner /> : <Video size={26} />}
             <span>QUICK RESPONSE CHALLENGE</span>
-            <h1>{finishing ? copy.finishing : preparing ? copy.challengePreparing : copy.challengeCountdown}</h1>
-            {!preparing && !finishing && <strong>{countdown}</strong>}
+            <h1>{preparing ? copy.challengePreparing : copy.challengeCountdown}</h1>
+            {!preparing && <strong>{countdown}</strong>}
             <p>{copy.reflexChallengeOption}</p>
           </div>
-          {!finishing && (
-            <div className="challenge-transition-actions">
-              {preparing && <Button variant="secondary" onClick={skipMicrophone}>{copy.continueWithoutMicrophone}</Button>}
-              <Button variant="danger" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToTop}</Button>
-            </div>
-          )}
+          <div className="challenge-transition-actions">
+            {preparing && <Button variant="secondary" onClick={skipMicrophone}>{copy.continueWithoutMicrophone}</Button>}
+            <Button variant="danger" onClick={onExit} icon={<ArrowLeft size={16} />}>{copy.backToTop}</Button>
+          </div>
         </section>
       </>
     );
